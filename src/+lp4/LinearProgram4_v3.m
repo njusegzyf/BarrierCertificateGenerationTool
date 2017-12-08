@@ -21,7 +21,7 @@ classdef LinearProgram4_v3
         wSymbolicVars
         wExpression
         rouVar
-                
+        
         pPartitions
         pLambdaPartitions
         
@@ -53,6 +53,27 @@ classdef LinearProgram4_v3
             
             this.f = [];
             this.decvars = [];
+        end
+        
+        function this = initLp(this, f, eps, theta, psy, zeta, degree, pLambdaDegree,phyRange, pLambdaRange)
+            this.f = f;
+            this.eps = eps;
+            
+            this = this.setDegreeAndInit(degree, pLambdaDegree);
+            
+            this = this.setThetaConstraint(theta);
+            this = this.setPsyConstraint(psy);
+            this = this.setZetaConstraint(zeta);
+            this = this.generateEqsForConstraint1To3();
+            
+            import lp4util.Partition
+            this.pPartitions = repmat(phyRange, 1024, 1);
+            this.pLambdaPartitions = repmat(pLambdaRange, 1024, 1);
+            this = this.setWConstraint();
+            
+            this = this.setDevVarsConstraint();
+            
+            this = this.setLinprogF();
         end
         
         function lp = set.f(lp, f)
@@ -147,7 +168,7 @@ classdef LinearProgram4_v3
             constraint2 = -phy_d + this.wExpression + this.eps(1);
             de = computeDegree(constraint2, this.indvars)  + this.cDegreeInc;
             
-            c_gama_delta = sym('c_gama_delta',[1,10000]);
+            c_gama_delta = sym('c_gama_delta',[1, 1000 * 1000]);
             [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
             this = this.addDecisionVars(constraintDecvars);
             
@@ -348,27 +369,92 @@ classdef LinearProgram4_v3
             
         end % function solve
         
-        function [verification, res] = verify(this, solveRes)
+        function [lpVer, solveResVer, resNorms] = verify(lp, solveRes, phyRangeInVerify)
+            lpVer = 0;
+            solveResVer = 0;
+            resNorms = 0;
+            
+            if ~(solveRes.hasSolution())
+                disp('Not find feasible solution to verify.');
+                return;
+            end
+            
+            % verify
+            
             import lp4.LinearProgram4Verification2
-            verification = LinearProgram4Verification2(this.indvars);
+            lpVer = LinearProgram4Verification2(lp.indvars);
             
-            verification.f = this.f;
-            verification.eps = this.eps;
+            lpVer.f = lp.f;
+            lpVer.eps = lp.eps;
             
-            % Set the degree of phy
-            verification = verification.setDegreeAndInit(this.degree);
+            % set the degree of phy
+            lpVer = lpVer.setDegreeAndInit(lp.degree);
             
-            verification.lambda = solveRes.getPLmabdaExpression();
+            % set lambda expression
+            lpVer.lambda = solveRes.getPLmabdaExpression();
             
-            verification = verification.setThetaConstraint(this.theta);
-            verification = verification.setPsyConstraint(this.psy);
-            verification = verification.setZetaConstraint(this.zeta);
-            verification = verification.generateEqsForConstraint1To3();
+            lpVer = lpVer.setThetaConstraint(lp.theta);
+            lpVer = lpVer.setPsyConstraint(lp.psy);
+            lpVer = lpVer.setZetaConstraint(lp.zeta);
+            lpVer = lpVer.generateEqsForConstraint1To3();
             
-            verification = verification.setDevVarsConstraint();
+            if isa(phyRangeInVerify, 'lp4util.Partition')
+                lpVer.pPartitions = repmat(phyRangeInVerify, 1024, 1);
+                lpVer.setPhyConstraint();
+            end
+            
+            lpVer = lpVer.setDevVarsConstraint();
             
             % solve the lp problem
-            [verification, res] = verification.solve();
+            [lpVer, solveResVer, resNorms] = lpVer.solve();
+            
+            if ~(solveResVer.hasSolution())
+                disp('Verify feasible solution failed.');
+            else
+                disp('Verify feasible solution succeed, norms ;');
+                disp(resNorms);
+            end
+        end
+        
+        function [lpVer, solveResVer, resNorms] = verifyWithPhy(lp, solveRes)
+            lpVer = 0;
+            solveResVer = 0;
+            resNorms = 0;
+            
+            if ~(solveRes.hasSolution())
+                disp('Not find feasible solution to verify.');
+                return;
+            end
+            
+            % verify
+            
+            import lp4.LinearProgram4Verification3
+            lpVer = LinearProgram4Verification3(lp.indvars);
+            
+            lpVer.f = lp.f;
+            lpVer.eps = lp.eps;
+            
+            % set the degree of lambda
+            lpVer = lpVer.setDegreeAndInit(lp.pLambdaDegree + 1);
+            
+            % set phy expression
+            lpVer.phy = solveRes.getPhyExpression();
+            
+            lpVer = lpVer.setThetaConstraint(lp.theta);
+            lpVer = lpVer.setPsyConstraint(lp.psy);
+            lpVer = lpVer.setZetaConstraint(lp.zeta);
+            lpVer = lpVer.generateEqsForConstraint1To3();
+            
+            lpVer = lpVer.setDevVarsConstraint();
+            
+            [lpVer, solveResVer, resNorms] = lpVer.solve();
+            
+            if ~(solveResVer.hasSolution())
+                disp('Verify feasible solution failed.');
+            else
+                disp('Verify feasible solution succeed, norms ;');
+                disp(resNorms);
+            end
         end
         
         function res = getPhyCoefficientStart(this)
@@ -402,6 +488,12 @@ classdef LinearProgram4_v3
     end % methods
     
     methods (Static)
+        
+        function lp = createLp(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange)
+            import lp4.LinearProgram4_v3
+            lp = LinearProgram4_v3(vars);
+            lp = lp.initLp(f, eps, theta, psy, zeta, degree, pLambdaDegree,phyRange, pLambdaRange);
+        end
         
         function [wSymbolicVars, wExpression] = createWExpression(pPolynomial, pLambdaPolynomial)
             wSymbolicVars = sym('w', [length(pPolynomial.coefficientVars), length(pLambdaPolynomial.coefficientVars)]);

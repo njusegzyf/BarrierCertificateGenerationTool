@@ -4,6 +4,8 @@ classdef Lp4Config
     properties (Constant)
         IS_DEBUG = true;
         IS_VERBOSE = false;
+
+        VERIFICATION_C_DEGREE_INC = 2;
     end
     
     methods (Static)

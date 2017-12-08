@@ -22,8 +22,6 @@ classdef LinearProgram4Verification2
         c1Length
         c2Length
         c3Length
-        
-        cDegreeInc = 2
 
         pPartitions = []
     end % properties
@@ -94,7 +92,8 @@ classdef LinearProgram4Verification2
             expr.b = [];
             
             constraint1 = -this.phy;
-            de = computeDegree(constraint1, this.indvars) + this.cDegreeInc;
+            import lp4.Lp4Config
+            de = computeDegree(constraint1, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_alpha_beta = sym('c_alpha_beta', [1,10000]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, thetaVars, c_alpha_beta);
@@ -122,7 +121,8 @@ classdef LinearProgram4Verification2
             end
             
             constraint2 = -phy_d + this.phy * this.lambda + this.eps(1);
-            de = computeDegree(constraint2, this.indvars) + this.cDegreeInc;
+            import lp4.Lp4Config
+            de = computeDegree(constraint2, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_gama_delta = sym('c_gama_delta',[1,10000]);
             [constraintDecvars, expression] = constraintExpression(de, psyVars, c_gama_delta);
@@ -145,7 +145,8 @@ classdef LinearProgram4Verification2
             expr.b = [];
             
             constraint3 = this.phy + this.eps(2); % different from lp2
-            de = computeDegree(constraint3, this.indvars) + this.cDegreeInc;
+            import lp4.Lp4Config;
+            de = computeDegree(constraint3, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_u_v = sym('c_u_v',[1,10000]);
             [constraintDecvars, expression] = constraintExpression(de,zetaVars,c_u_v);

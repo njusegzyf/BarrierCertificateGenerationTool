@@ -1,4 +1,4 @@
-function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV3(...
+function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaAndPhyV3(...
     vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
     phyRange, pLambdaRange, phyRangeInVerify)
 
@@ -10,8 +10,16 @@ lp = createLp(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, p
 
 isVerified = false;
 
-% verify the lp problem
+% verify the lp problem with the computed lambda
 [lpVer, solveResVer, resNorms] = lp.verify(solveRes, phyRangeInVerify);
+import lp4.isResNormsOk
+if (solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms))
+    isVerified = true;
+    return;
+end
+
+% verify the lp problem with the computed phy
+[lpVer, solveResVer, resNorms] = lp.verifyWithPhy(solveRes);
 import lp4.isResNormsOk
 if (solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms))
     isVerified = true;

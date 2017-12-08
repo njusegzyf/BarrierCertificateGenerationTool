@@ -1,4 +1,4 @@
-function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithRangeCandidates(...
+function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithRangeCandidates2(...
     vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
     phyRanges, pLambdaRanges, phyRangesInVerify)
 
@@ -12,7 +12,7 @@ end
 
 isVerified = false;
 
-for i = 1 : rangeCandicatesCount  
+for i = 1 : rangeCandicatesCount
     phyRange = phyRanges(i);
     pLambdaRange = pLambdaRanges(i);
     if phyRangesInVerify == 0
@@ -21,8 +21,8 @@ for i = 1 : rangeCandicatesCount
         phyRangeInVerify = phyRangesInVerify(i);
     end
     
-    import lp4.runAndVerifyWithLambdaV3
-    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV3(...
+    import lp4.runAndVerifyWithLambdaAndPhyV3
+    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaAndPhyV3(...
         vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
         phyRange, pLambdaRange, phyRangeInVerify);
     
