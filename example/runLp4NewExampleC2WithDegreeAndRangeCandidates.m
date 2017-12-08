@@ -39,14 +39,11 @@ g_zeta = [zeta1, zeta2];
 degrees = [1, 2, 3, 4];
 pLambdaDegrees = [0, 1, 2, 3, 4];
 
-rangeCandidates = [1, 0.5, 0.3, 0.15, 0.1];
-import lp4util.Partition
-phyRanges = arrayfun(@(x) Partition(-x, x), rangeCandidates);
-pLambdaRanges = arrayfun(@(x) Partition(-x, x), rangeCandidates);
-phyRangesInVerify = 0;
+ranges = [1, 0.5, 0.3, 0.15, 0.1];
+import lp4util.createRangeCandidates
+[phyRanges, pLambdaRanges, phyRangesInVerify] = createRangeCandidates(ranges, ranges, 0);
 
-
-
+% run and verify
 import lp4.runAndVerifyWithDegreeAndRangeCandidates
 [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithDegreeAndRangeCandidates(...
     vars, f, eps, g_theta, g_psy, g_zeta,...

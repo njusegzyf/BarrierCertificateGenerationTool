@@ -1,4 +1,4 @@
-function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithRangeCandidates(...
+function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithRangeCandidatesV2(...
     vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
     phyRanges, pLambdaRanges, phyRangesInVerify)
 
@@ -12,6 +12,10 @@ end
 
 isVerified = false;
 
+% Note: In this version, we reuse a `lp4.LinearProgram4_v3` for different ranges.
+import lp4.LinearProgram4_v3
+lp = LinearProgram4_v3.createLpWithoutRanges(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree);
+
 for i = 1 : rangeCandicatesCount
     phyRange = phyRanges(i);
     pLambdaRange = pLambdaRanges(i);
@@ -21,17 +25,16 @@ for i = 1 : rangeCandicatesCount
         phyRangeInVerify = phyRangesInVerify(i);
     end
     
-    import lp4.runAndVerifyWithLambdaV3
-    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV3(...
-        vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
-        phyRange, pLambdaRange, phyRangeInVerify);
-    
-    %     import lp4.runAndVerifyWithLambdaAndPhyV3
-    %     [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaAndPhyV3(...
-    %         vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
-    %         phyRange, pLambdaRange, phyRangeInVerify);
-    
+    import lp4.runAndVerifyWithLambdaV4
+    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV4(...
+        lp, phyRange, pLambdaRange, phyRangeInVerify);
+
     if isVerified
+        return;
+    end
+    
+    % if a large range has no solution, we can skip small ranges
+    if ~solveRes.hasSolution()
         return;
     end
 end

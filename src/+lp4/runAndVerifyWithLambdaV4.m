@@ -1,11 +1,9 @@
-function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV3(...
-    vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
-    phyRange, pLambdaRange, phyRangeInVerify)
+function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV4(...
+    lp, phyRange, pLambdaRange, phyRangeInVerify)
 
-% Note: Matlab do not support `import lp4.LinearProgram4_v3.createLp`
-% (a static method) and then use it directly.
-import lp4.LinearProgram4_v3
-lp = LinearProgram4_v3.createLp(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange);
+lp.pPartitions = repmat(phyRange, 1024, 1);
+lp.pLambdaPartitions = repmat(pLambdaRange, 1024, 1);
+lp = lp.setWConstraint();
 
 % solve the lp problem
 [lp, solveRes] = lp.solve();

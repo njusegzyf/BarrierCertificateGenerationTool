@@ -47,8 +47,8 @@ phyRangesInVerify = 0;
 
 
 
-import lp4.runAndVerifyWithRangeCandidates
-[lp, solveRes, lpVer, solveResVer, resNorms] = runAndVerifyWithRangeCandidates(...
+import lp4.runAndVerifyWithRangeCandidatesV2
+[lp, solveRes, lpVer, solveResVer, resNorms] = runAndVerifyWithRangeCandidatesV2(...
 vars, f, eps, g_theta, g_psy, g_zeta, degree, pLambdaDegree,...
 phyRanges, pLambdaRanges, phyRangesInVerify);
 

@@ -1,6 +1,8 @@
 classdef LinearProgram4_v3
     %LINEARPROGRAM A linear program.
     % In this one, we only add rou to all ies.
+    % And for resue a lp for different ranges, we let the constraints of (p,
+    % c, w) to be the last expr (index 5).
     
     properties
         indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
@@ -55,7 +57,7 @@ classdef LinearProgram4_v3
             this.decvars = [];
         end
         
-        function this = initLp(this, f, eps, theta, psy, zeta, degree, pLambdaDegree,phyRange, pLambdaRange)
+        function this = initLpWithoutRanges(this, f, eps, theta, psy, zeta, degree, pLambdaDegree)
             this.f = f;
             this.eps = eps;
             
@@ -66,14 +68,18 @@ classdef LinearProgram4_v3
             this = this.setZetaConstraint(zeta);
             this = this.generateEqsForConstraint1To3();
             
+            this = this.setDevVarsConstraint();
+            
+            this = this.setLinprogF();
+        end
+        
+        function this = initLp(this, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange)
+            this.initLpWithoutRanges(f, eps, theta, psy, zeta, degree, pLambdaDegree);
+            
             import lp4util.Partition
             this.pPartitions = repmat(phyRange, 1024, 1);
             this.pLambdaPartitions = repmat(pLambdaRange, 1024, 1);
             this = this.setWConstraint();
-            
-            this = this.setDevVarsConstraint();
-            
-            this = this.setLinprogF();
         end
         
         function lp = set.f(lp, f)
@@ -212,9 +218,31 @@ classdef LinearProgram4_v3
             end
         end
         
+        function this = setDevVarsConstraint(this)
+            decexpr = Constraint();
+            decexpr.num = 4;
+            decexpr.name = 'decvarconstraints';
+            decexpr.type = 'ie';
+            decexpr.polyexpr = [];
+            
+            cStart = this.getWStart() + this.getWLength() - 1;
+            cLength = length(this.decvars) - cStart;
+            decexpr.A = zeros(cLength, length(this.decvars));
+            rouIndex = this.getRouIndex();
+            for k = 1 : 1 : cLength
+                decexpr.A(k, cStart + k) = -1;
+                % - rou
+                decexpr.A(k, rouIndex) = -1;
+            end
+            bc = repmat(this.rouInc, cLength, 1);
+            decexpr.b = bc;
+            
+            this.exprs(4) = decexpr;
+        end % function setDevVarsConstraint
+        
         function this = setWConstraint(this)
             expr = Constraint();
-            expr.num = length(this.exprs) + 1;
+            expr.num = 5;
             expr.name = 'w';
             expr.type = 'ie';
             expr.A = [];
@@ -262,29 +290,8 @@ classdef LinearProgram4_v3
                 end
             end
             
-            this.exprs = [this.exprs expr];
+            this.exprs(5) = expr;
         end
-        
-        function this = setDevVarsConstraint(this)
-            decexpr = Constraint();
-            decexpr.num = length(this.exprs) + 1;
-            decexpr.name = 'decvarconstraints';
-            decexpr.type = 'ie';
-            decexpr.polyexpr = [];
-            
-            cStart = this.getWStart() + this.getWLength() - 1;
-            cLength = length(this.decvars) - cStart;
-            decexpr.A = zeros(cLength, length(this.decvars));
-            rouIndex = this.getRouIndex();
-            for k = 1 : 1 : cLength
-                decexpr.A(k, cStart + k) = -1;
-                % - rou
-                decexpr.A(k, rouIndex) = -1;
-            end
-            bc = repmat(this.rouInc, cLength, 1);
-            decexpr.b = bc;
-            this.exprs = [this.exprs decexpr];
-        end % function setDevVarsConstraint
         
         function this = setLinprogF(this)
             % init f with all zeros
@@ -294,6 +301,10 @@ classdef LinearProgram4_v3
             % rouVarIndex = find(this.decvars == this.rouVar);
             rouVarIndex = this.getRouIndex();
             this.linprogF(rouVarIndex) = 1;
+        end
+        
+        function this = resetRangeAndConstraints(this)
+            
         end
         
         function [this, solveRes] = solve(this)
@@ -492,7 +503,13 @@ classdef LinearProgram4_v3
         function lp = createLp(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange)
             import lp4.LinearProgram4_v3
             lp = LinearProgram4_v3(vars);
-            lp = lp.initLp(f, eps, theta, psy, zeta, degree, pLambdaDegree,phyRange, pLambdaRange);
+            lp = lp.initLp(f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange);
+        end
+        
+        function lp = createLpWithoutRanges(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree)
+            import lp4.LinearProgram4_v3
+            lp = LinearProgram4_v3(vars);
+            lp = lp.initLpWithoutRanges(f, eps, theta, psy, zeta, degree, pLambdaDegree);
         end
         
         function [wSymbolicVars, wExpression] = createWExpression(pPolynomial, pLambdaPolynomial)
