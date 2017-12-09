@@ -402,7 +402,8 @@ classdef LinearProgram4_v3
             lpVer.eps = lp.eps;
             
             % set the degree of phy
-            lpVer = lpVer.setDegreeAndInit(lp.degree);
+            import lp4.Lp4Config
+            lpVer = lpVer.setDegreeAndInit(lp.degree + Lp4Config.VERIFICATION_PHY_DEGREE_INC);
             
             % set lambda expression
             lpVer.lambda = solveRes.getPLmabdaExpression();
@@ -449,7 +450,8 @@ classdef LinearProgram4_v3
             lpVer.eps = lp.eps;
             
             % set the degree of lambda
-            lpVer = lpVer.setDegreeAndInit(lp.pLambdaDegree + 1);
+            import lp4.Lp4Config
+            lpVer = lpVer.setDegreeAndInit(lp.pLambdaDegree + Lp4Config.VERIFICATION_LAMBDA_DEGREE_INC);
             
             % set phy expression
             lpVer.phy = solveRes.getPhyExpression();

@@ -7,6 +7,9 @@ classdef Lp4Config
 
         C_DEGREE_INC = 0;
         VERIFICATION_C_DEGREE_INC = 0;
+        
+        VERIFICATION_PHY_DEGREE_INC = 0;
+        VERIFICATION_LAMBDA_DEGREE_INC = 0;
     end
     
     methods (Static)
