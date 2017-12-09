@@ -5,7 +5,8 @@ classdef Lp4Config
         IS_DEBUG = true;
         IS_VERBOSE = false;
 
-        VERIFICATION_C_DEGREE_INC = 2;
+        C_DEGREE_INC = 0;
+        VERIFICATION_C_DEGREE_INC = 0;
     end
     
     methods (Static)

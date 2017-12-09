@@ -44,9 +44,10 @@ classdef LinearProgram4Verification3SolveResult
         function res = getLambdaExpression(this)
             lp = this.linearProgram;
             import lp4util.reshapeToVector
-            res = reshapeToVector(this.getLambdaCoefficient()) * monomials(lp.indvars, 0 : lp.degree);
+            res = reshapeToVector(this.getLambdaCoefficient()) * monomials(lp.indvars, 0 : lp.lambdaDegree);
         end 
         
+
         function res = verify(this)
             for i = 1 : 3
                 if ~(this.verifyExpr(i))
@@ -58,12 +59,27 @@ classdef LinearProgram4Verification3SolveResult
             res = true;
         end
         
-        function res = verifyExpr(this, index) 
+        function res = verifyExpr(this, index)
             lp = this.linearProgram;
             expr = lp.exprs(index);
             
             mid = expr.A * this.x - expr.b;
             res = norm(mid) <= this.normThreadhold;
+        end
+        
+        function res = verifyNorms(this)
+            res = [];
+            for i = 1 : 3
+                res = [res, this.verifyExprNorm(i)];
+            end
+        end
+        
+        function res = verifyExprNorm(this, index)
+            lp = this.linearProgram;
+            expr = lp.exprs(index);
+            
+            mid = expr.A * this.x - expr.b;
+            res = norm(mid);
         end
         
         function printSolution(this)

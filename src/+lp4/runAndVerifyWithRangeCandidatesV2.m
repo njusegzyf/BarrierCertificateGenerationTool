@@ -25,8 +25,8 @@ for i = 1 : rangeCandicatesCount
         phyRangeInVerify = phyRangesInVerify(i);
     end
     
-    import lp4.runAndVerifyWithLambdaV4
-    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV4(...
+    import lp4.runAndVerifyWithLambdaAndPhyV4
+    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaAndPhyV4(...
         lp, phyRange, pLambdaRange, phyRangeInVerify);
 
     if isVerified

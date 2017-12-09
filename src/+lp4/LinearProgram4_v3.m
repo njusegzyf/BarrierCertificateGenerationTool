@@ -33,8 +33,7 @@ classdef LinearProgram4_v3
         psy
         zeta
         
-        rouInc = 0
-        cDegreeInc = 2
+        rouInc  =  0
     end % properties
     
     methods
@@ -54,7 +53,6 @@ classdef LinearProgram4_v3
             this.eps = [];
             
             this.f = [];
-            this.decvars = [];
         end
         
         function this = initLpWithoutRanges(this, f, eps, theta, psy, zeta, degree, pLambdaDegree)
@@ -135,14 +133,15 @@ classdef LinearProgram4_v3
             this.theta = theta;
             
             expr = Constraint();
-            expr.num = length(this.exprs) + 1;
+            expr.num = 1;
             expr.name = 'theta';
             expr.type = 'eq';
             expr.A = [];
             expr.b = [];
             
             constraint1 = -this.phy;
-            de = computeDegree(constraint1, this.indvars) + this.cDegreeInc;
+            import lp4.Lp4Config
+            de = computeDegree(constraint1, this.indvars) + Lp4Config.C_DEGREE_INC;
             
             c_alpha_beta = sym('c_alpha_beta', [1,10000]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
@@ -153,14 +152,16 @@ classdef LinearProgram4_v3
             constraint1 = expand(constraint1);
             expr.polyexpr = constraint1;
             
-            this.exprs = [this.exprs expr];
+            % Note: This is the first expression, and use `this.exprs(expr.num) = expr;` here
+            % will cause an error in Matlab 2014b but is Ok in Matlab 2017b.
+            this.exprs = [expr];
         end
         
         function this = setPsyConstraint(this, psy)
             this.psy = psy;
             
             expr = Constraint();
-            expr.num = length(this.exprs) + 1;
+            expr.num = 2;
             expr.name = 'psy';
             expr.type = 'eq';
             expr.A = [];
@@ -172,7 +173,8 @@ classdef LinearProgram4_v3
             end
             
             constraint2 = -phy_d + this.wExpression + this.eps(1);
-            de = computeDegree(constraint2, this.indvars)  + this.cDegreeInc;
+            import lp4.Lp4Config
+            de = computeDegree(constraint2, this.indvars) + Lp4Config.C_DEGREE_INC;
             
             c_gama_delta = sym('c_gama_delta',[1, 1000 * 1000]);
             [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
@@ -183,21 +185,22 @@ classdef LinearProgram4_v3
             constraint2 = expand(constraint2);
             expr.polyexpr = constraint2;
             
-            this.exprs = [this.exprs expr];
+            this.exprs(expr.num) = expr;
         end
         
         function this = setZetaConstraint(this, zeta)
             this.zeta = zeta;
             
             expr = Constraint();
-            expr.num = length(this.exprs) + 1;
+            expr.num = 3;
             expr.name = 'zeta';
             expr.type = 'eq';
             expr.A = [];
             expr.b = [];
             
             constraint3 = this.phy + this.eps(2); % different from lp2
-            de = computeDegree(constraint3, this.indvars) + this.cDegreeInc;
+            import lp4.Lp4Config
+            de = computeDegree(constraint3, this.indvars) + Lp4Config.C_DEGREE_INC;
             
             c_u_v = sym('c_u_v',[1,10000]);
             [constraintDecvars, expression] = constraintExpression(de, zeta, c_u_v);
@@ -208,7 +211,7 @@ classdef LinearProgram4_v3
             constraint3 = expand(constraint3);
             expr.polyexpr = constraint3;
             
-            this.exprs = [this.exprs expr];
+            this.exprs(expr.num) = expr;
         end
         
         function this = generateEqsForConstraint1To3(this)
@@ -237,7 +240,7 @@ classdef LinearProgram4_v3
             bc = repmat(this.rouInc, cLength, 1);
             decexpr.b = bc;
             
-            this.exprs(4) = decexpr;
+            this.exprs(decexpr.num) = decexpr;
         end % function setDevVarsConstraint
         
         function this = setWConstraint(this)
@@ -290,7 +293,7 @@ classdef LinearProgram4_v3
                 end
             end
             
-            this.exprs(5) = expr;
+            this.exprs(expr.num) = expr;
         end
         
         function this = setLinprogF(this)

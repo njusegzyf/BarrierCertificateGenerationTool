@@ -1,4 +1,4 @@
-function [lp, solveRes, verified]  = runLp4Example1Verification2()
+function [lp, solveRes, resNorms]  = runLp4Example1VerificationWithGivenLambda()
 
 % Example 1 
 
@@ -38,6 +38,13 @@ zeta2 = x2-2;
 
 g_zeta = [zeta1, zeta2];
 
+
+
+phyDegree = 3;
+lambda = - (1125925798617485*x1)/2251799813685248 - (1125925798617485*x2)/2251799813685248 - 1125925798617485/2251799813685248;
+
+
+
 import lp4.LinearProgram4Verification2
 lp = LinearProgram4Verification2(vars);
 
@@ -45,9 +52,9 @@ lp.f = f;
 lp.eps = eps;
 
 % Set the degree of phy
-lp = lp.setDegreeAndInit(3);
+lp = lp.setDegreeAndInit(phyDegree);
 
-lp.lambda = - (1125925798617485*x1)/2251799813685248 - (1125925798617485*x2)/2251799813685248 - 1125925798617485/2251799813685248;
+lp.lambda = lambda;
 % 0; % OK
 
 lp = lp.setThetaConstraint(g_theta);
@@ -58,12 +65,13 @@ lp = lp.generateEqsForConstraint1To3();
 lp = lp.setDevVarsConstraint();
 
 % solve the lp problem
-[lp, solveRes] = lp.solve();
+[lp, solveRes, resNorms] = lp.solve();
 
-if solveRes.hasSolution()
-    verified = solveRes.verify();
+if ~(solveRes.hasSolution())
+    disp('Verify failed.');
 else
-    verified = false;
+    disp('Verify succeed, norms ;');
+    disp(resNorms);
 end
 
 warning('on')

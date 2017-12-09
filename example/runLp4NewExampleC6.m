@@ -1,7 +1,5 @@
 function [lp, solveRes, lpVer, solveResVer] = runLp4NewExampleC6() 
 
-% Example 2
-
 clear; 
 echo on;
 
