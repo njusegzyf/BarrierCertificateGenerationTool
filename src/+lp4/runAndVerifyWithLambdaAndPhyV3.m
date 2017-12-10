@@ -10,10 +10,18 @@ lp = createLp(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, p
 
 isVerified = false;
 
+if ~solveRes.hasSolution()
+	disp('Not find feasible solution to verify.');
+    lpVer = 0;
+    solveResVer = 0;
+    resNorms = [];
+	return;
+end
+
 % verify the lp problem with the computed lambda
 [lpVer, solveResVer, resNorms] = lp.verify(solveRes, phyRangeInVerify);
 import lp4.isResNormsOk
-if (solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms))
+if solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms)
     isVerified = true;
     return;
 end
@@ -21,7 +29,7 @@ end
 % verify the lp problem with the computed phy
 [lpVer, solveResVer, resNorms] = lp.verifyWithPhy(solveRes);
 import lp4.isResNormsOk
-if (solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms))
+if solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms)
     isVerified = true;
     return;
 end

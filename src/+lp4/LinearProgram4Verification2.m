@@ -1,5 +1,5 @@
 classdef LinearProgram4Verification2
-    %LinearProgram4Verification2 A linear program used to verify the solution of LinearProgram4 
+    %LinearProgram4Verification2 A linear program used to verify the solution of LinearProgram4
     % with given lambda.
     
     properties
@@ -22,7 +22,7 @@ classdef LinearProgram4Verification2
         c1Length
         c2Length
         c3Length
-
+        
         pPartitions = []
     end % properties
     
@@ -83,7 +83,15 @@ classdef LinearProgram4Verification2
             this.phyPolynomial = SymbolicPolynomial(this.indvars, degree, p, this.phy);
         end
         
-        function this = setThetaConstraint(this, thetaVars)
+        function this = setThetaConstraint(this, theta)
+            % for an empty constrain
+            if isempty(theta)
+                expr = Constraint.createEmptyConstraint();
+                expr.num = 1;
+                this.exprs = [expr];
+                return;
+            end
+            
             expr = Constraint();
             expr.num = length(this.exprs) + 1;
             expr.name = 'theta';
@@ -96,7 +104,7 @@ classdef LinearProgram4Verification2
             de = computeDegree(constraint1, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_alpha_beta = sym('c_alpha_beta', [1,10000]); % pre-defined varibales, only a few of them are the actual variables
-            [constraintDecvars, expression] = constraintExpression(de, thetaVars, c_alpha_beta);
+            [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
             this = this.addDecisionVars(constraintDecvars);
             this.c1Length = length(constraintDecvars);
             
@@ -107,7 +115,15 @@ classdef LinearProgram4Verification2
         end
         
         % This is the main difference from `LinearProgram4`.
-        function this = setPsyConstraint(this, psyVars)
+        function this = setPsyConstraint(this, psy)
+            % for an empty constrain
+            if isempty(psy)
+                expr = Constraint.createEmptyConstraint();
+                expr.num = 2;
+                this.exprs(2) = expr;
+                return;
+            end
+            
             expr = Constraint();
             expr.num = length(this.exprs) + 1;
             expr.name = 'psy';
@@ -125,7 +141,7 @@ classdef LinearProgram4Verification2
             de = computeDegree(constraint2, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_gama_delta = sym('c_gama_delta',[1,10000]);
-            [constraintDecvars, expression] = constraintExpression(de, psyVars, c_gama_delta);
+            [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
             this = this.addDecisionVars(constraintDecvars);
             this.c2Length = length(constraintDecvars);
             
@@ -136,7 +152,15 @@ classdef LinearProgram4Verification2
             this.exprs = [this.exprs expr];
         end
         
-        function this = setZetaConstraint(this, zetaVars)
+        function this = setZetaConstraint(this, zeta)
+            % for an empty constrain
+            if isempty(zeta)
+                expr = Constraint.createEmptyConstraint();
+                expr.num = 3;
+                this.exprs(3) = expr;
+                return;
+            end
+            
             expr = Constraint();
             expr.num = length(this.exprs) + 1;
             expr.name = 'zeta';
@@ -149,7 +173,7 @@ classdef LinearProgram4Verification2
             de = computeDegree(constraint3, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_u_v = sym('c_u_v',[1,10000]);
-            [constraintDecvars, expression] = constraintExpression(de,zetaVars,c_u_v);
+            [constraintDecvars, expression] = constraintExpression(de,zeta,c_u_v);
             this = this.addDecisionVars(constraintDecvars);
             this.c3Length = length(constraintDecvars);
             
@@ -162,6 +186,10 @@ classdef LinearProgram4Verification2
         
         function this = generateEqsForConstraint1To3(this)
             for k = 1 : 1 : 3
+                if this.exprs(k).isEmptyConstraint()
+                    continue;
+                end
+                
                 [ this.exprs(k).A, this.exprs(k).b ] = eqgenerate( this.indvars, this.decvars, this.exprs(k).polyexpr);
                 disp(['constraint ',this.exprs(k).name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
             end
@@ -169,9 +197,9 @@ classdef LinearProgram4Verification2
         
         function this = setPhyConstraint(this)
             if isempty(this.pPartitions)
-              return;
+                return;
             end
-  
+            
             expr = Constraint();
             expr.num = length(this.exprs) + 1;
             expr.name = 'phy';
@@ -185,10 +213,10 @@ classdef LinearProgram4Verification2
                 
                 expr = pPartition.createConstraintsAndAddToExpr(p, this.decvars, expr);
             end
-
+            
             this.exprs = [this.exprs expr];
         end
-
+        
         function this = setDevVarsConstraint(this)
             decexpr = Constraint();
             decexpr.num = length(this.exprs) + 1;
@@ -215,6 +243,10 @@ classdef LinearProgram4Verification2
             bie = [];
             
             for k = 1 : 1 : length(this.exprs)
+                if this.exprs(k).isEmptyConstraint()
+                    continue;
+                end
+                
                 if this.exprs(k).type == 'eq'
                     Aeq = [Aeq; this.exprs(k).A];
                     beq = [beq; this.exprs(k).b];
@@ -231,7 +263,7 @@ classdef LinearProgram4Verification2
             
             import lp4.LinearProgram4Verification2SolveResult
             solveRes = LinearProgram4Verification2SolveResult(this, x, fval, flag, time);
-
+            
             import lp4.Lp4Config
             if Lp4Config.isDebug()
                 solveRes.printSolution();

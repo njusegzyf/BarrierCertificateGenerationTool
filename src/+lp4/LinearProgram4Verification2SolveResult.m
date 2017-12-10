@@ -62,6 +62,11 @@ classdef LinearProgram4Verification2SolveResult
             lp = this.linearProgram;
             expr = lp.exprs(index);
             
+            if strcmp(expr.name, 'empty')
+                res  = true;
+                return;
+            end
+            
             mid = expr.A * this.x - expr.b;
             res = norm(mid) <= this.normThreadhold;
         end
@@ -77,6 +82,11 @@ classdef LinearProgram4Verification2SolveResult
             lp = this.linearProgram;
             expr = lp.exprs(index);
             
+            if strcmp(expr.name, 'empty')
+                res = 0;
+                return;
+            end
+            
             mid = expr.A * this.x - expr.b;
             res = norm(mid);
         end
@@ -91,9 +101,9 @@ classdef LinearProgram4Verification2SolveResult
             disp(['degree: ', num2str(lp.degree),...
                 '; eps1: ',num2str(lp.eps(1)),...
                 '; eps2: ',num2str(lp.eps(2))]);
-
+            
             import lp4util.reshapeToVector
-
+            
             if (flag == 1)
                 disp('--------------------------------------------------------------');
                 disp('The coefficients of function phy is:');

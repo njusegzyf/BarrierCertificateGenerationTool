@@ -1,8 +1,9 @@
 classdef LinearProgram4_v3
     %LINEARPROGRAM A linear program.
     % In this one, we only add rou to all ies.
-    % And for resue a lp for different ranges, we let the constraints of (p,
-    % c, w) to be the last expr (index 5).
+    % And for resue a lp for different ranges, we let the constraints of
+    % (p, c, w) to be the last expr (index 5).
+    % We also allow theta, psy, zeta to be empty.
     
     properties
         indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
@@ -72,7 +73,7 @@ classdef LinearProgram4_v3
         end
         
         function this = initLp(this, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange)
-            this.initLpWithoutRanges(f, eps, theta, psy, zeta, degree, pLambdaDegree);
+            this = this.initLpWithoutRanges(f, eps, theta, psy, zeta, degree, pLambdaDegree);
             
             import lp4util.Partition
             this.pPartitions = repmat(phyRange, 1024, 1);
@@ -132,6 +133,14 @@ classdef LinearProgram4_v3
         function this = setThetaConstraint(this, theta)
             this.theta = theta;
             
+            % for an empty constrain
+            if isempty(theta)
+                expr = Constraint.createEmptyConstraint();
+                expr.num = 1;
+                this.exprs = [this.exprs, expr];
+                return;
+            end
+            
             expr = Constraint();
             expr.num = 1;
             expr.name = 'theta';
@@ -154,11 +163,19 @@ classdef LinearProgram4_v3
             
             % Note: This is the first expression, and use `this.exprs(expr.num) = expr;` here
             % will cause an error in Matlab 2014b but is Ok in Matlab 2017b.
-            this.exprs = [expr];
+            this.exprs = [this.exprs, expr];
         end
         
         function this = setPsyConstraint(this, psy)
             this.psy = psy;
+            
+            % for an empty constrain
+            if isempty(psy)
+                expr = Constraint.createEmptyConstraint();
+                expr.num = 2;
+                this.exprs(expr.num) = expr;
+                return;
+            end
             
             expr = Constraint();
             expr.num = 2;
@@ -191,6 +208,14 @@ classdef LinearProgram4_v3
         function this = setZetaConstraint(this, zeta)
             this.zeta = zeta;
             
+            % for an empty constrain
+            if isempty(zeta)
+                expr = Constraint.createEmptyConstraint();
+                expr.num = 3;
+                this.exprs(expr.num) = expr;
+                return;
+            end
+            
             expr = Constraint();
             expr.num = 3;
             expr.name = 'zeta';
@@ -216,31 +241,35 @@ classdef LinearProgram4_v3
         
         function this = generateEqsForConstraint1To3(this)
             for k = 1 : 1 : 3
+                if this.exprs(k).isEmptyConstraint()
+                    continue;
+                end
+                
                 [ this.exprs(k).A, this.exprs(k).b ] = eqgenerate( this.indvars, this.decvars, this.exprs(k).polyexpr);
                 disp(['constraint ',this.exprs(k).name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
             end
         end
         
         function this = setDevVarsConstraint(this)
-            decexpr = Constraint();
-            decexpr.num = 4;
-            decexpr.name = 'decvarconstraints';
-            decexpr.type = 'ie';
-            decexpr.polyexpr = [];
+            expr = Constraint();
+            expr.num = 4;
+            expr.name = 'decvarconstraints';
+            expr.type = 'ie';
+            expr.polyexpr = [];
             
             cStart = this.getWStart() + this.getWLength() - 1;
             cLength = length(this.decvars) - cStart;
-            decexpr.A = zeros(cLength, length(this.decvars));
+            expr.A = zeros(cLength, length(this.decvars));
             rouIndex = this.getRouIndex();
             for k = 1 : 1 : cLength
-                decexpr.A(k, cStart + k) = -1;
+                expr.A(k, cStart + k) = -1;
                 % - rou
-                decexpr.A(k, rouIndex) = -1;
+                expr.A(k, rouIndex) = -1;
             end
             bc = repmat(this.rouInc, cLength, 1);
-            decexpr.b = bc;
+            expr.b = bc;
             
-            this.exprs(decexpr.num) = decexpr;
+            this.exprs(expr.num) = expr;
         end % function setDevVarsConstraint
         
         function this = setWConstraint(this)
@@ -306,10 +335,6 @@ classdef LinearProgram4_v3
             this.linprogF(rouVarIndex) = 1;
         end
         
-        function this = resetRangeAndConstraints(this)
-            
-        end
-        
         function [this, solveRes] = solve(this)
             Aeq = [];
             beq = [];
@@ -317,6 +342,10 @@ classdef LinearProgram4_v3
             bie = [];
             
             for k = 1 : 1 : length(this.exprs)
+                if this.exprs(k).isEmptyConstraint()
+                    continue;
+                end
+                
                 if strcmp(this.exprs(k).type, 'eq')
                     Aeq = [Aeq; this.exprs(k).A];
                     beq = [beq; this.exprs(k).b];
@@ -347,6 +376,10 @@ classdef LinearProgram4_v3
             bie = [];
             
             for k = [1, 3, 5]
+                if strcmp(this.exprs(k).name, 'empty')
+                    continue;
+                end
+                
                 if strcmp(this.exprs(k).type, 'eq')
                     Aeq = [Aeq; this.exprs(k).A];
                     beq = [beq; this.exprs(k).b];

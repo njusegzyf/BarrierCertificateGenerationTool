@@ -1,4 +1,4 @@
-function [lp, solveRes, lpVer, solveResVer, resNorms] = runLp4NewExampleC4WithDegreeAndRangeCandidates()
+function [lp, solveRes, lpVer, solveResVer, resNorms] = runLp4Example6WithDegreeAndRangeCandidates()
 
 clear; 
 echo on;
@@ -8,20 +8,18 @@ echo on;
 warning('off')
 
 % get the problem
-[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4NewExampleC4Problem();
+[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example6Problem();
 
 
 
 % set the degree of phy and lambda
-degrees = [4];
-pLambdaDegrees = [1, 2, 3, 4];
+degrees = [1, 2, 3, 4];
+pLambdaDegrees = [0, 1, 2, 3];
 
 % set the ranges
 ranges = [1, 0.5, 0.3, 0.15, 0.1];
 import lp4util.createRangeCandidates
 [phyRanges, pLambdaRanges, phyRangesInVerify] = createRangeCandidates(ranges, ranges, 0);
-
-% Note: For degree = [1 .. 4], pLambdaDegree = [1 .. 3], range = [1..0.1], unable to verify feasible solutions with lambda.
 
 
 

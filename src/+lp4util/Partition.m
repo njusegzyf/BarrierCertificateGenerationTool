@@ -53,9 +53,19 @@ classdef Partition
             expr.A = [expr.A; A];
             expr.b = [expr.b; b];
         end
-    end
+    end % end methods
     
     methods (Static = true)
-    end
+        
+        function res = createPartitionFromMidValue(mid, delta)
+            if delta < 0
+                error('');
+            end
+            
+            import lp4util.Partition
+            res = Partition(mid - delta, mid + delta);
+        end
+        
+    end % end methods (Static = true) 
     
 end

@@ -1,5 +1,5 @@
 function constraints = createOverApproximationAsConstraints(p, pPartition, c, cPartition, w)
-%CREATEOVERAPPROXIMATION Create an over approximation for W = P * C.
+%createOverApproximationAsConstraints Create an over approximation for W = P * C.
 
 if ~isa(p, 'sym') || ~isa(c, 'sym') || ~isa(w, 'sym')
     error('p or c or w is not a symbolic variable.');

@@ -5,38 +5,13 @@ function [lp, solveRes] = runLp4Example7()
 clear; 
 echo on;
 
-% independent variables
-syms x y;
-vars = [x y];
+% disable warning of `Support of character vectors will be removed in a future release.` 
+% which is produced by function `monomials`.
+warning('off')
 
-% Constructing the vector field dx/dt = f
-f = [1+x^2*y-2.5*x;
-     1.5*x-x^2*y];
+[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example6Problem();
 
-% Set the degree of phy
-degree = 2;
 
-M = 0;
-r = 0;
-eps = [0.1,0.1];
-
-% Constructing the theta constraint
-theta1 = 10*x-9;
-theta2 = 10*y;
-
-g_theta = [theta1,theta2];
-
-% Constructing the psy constraint
-psy1 = x;
-psy2 = y;
-
-g_psy = [psy1, psy2];
-
-% Constructing the zeta constraint
-zeta1 = 5*x-1;
-zeta2 = 5*y-2;
-
-g_zeta = [zeta1,zeta2];
 
 import lp4.LinearProgram4
 lp = LinearProgram4(vars);

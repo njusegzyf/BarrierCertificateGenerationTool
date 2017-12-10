@@ -21,6 +21,8 @@ ranges = [1, 0.5, 0.3, 0.15, 0.1];
 import lp4util.createRangeCandidates
 [phyRanges, pLambdaRanges, phyRangesInVerify] = createRangeCandidates(ranges, ranges, 0);
 
+% Note; For degrees = 3, pLambdaDegrees = 1, ranges = 1, Ok.
+
 
 
 % run and verify
