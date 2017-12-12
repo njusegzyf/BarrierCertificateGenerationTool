@@ -1,4 +1,4 @@
-function [lp, solveRes, lpVer, solveResVer, resNorms] = runLp4BenkEx31WithDegreeAndRangeCandidates()
+function [lp, solveRes, lpVer, solveResVer, resNorms] = runLp4BenkEx41WithDegreeAndRangeCandidates()
 
 clear;
 echo on;
@@ -7,7 +7,7 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4BenkEx31Problem();
+[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4BenkEx41Problem();
 
 
 

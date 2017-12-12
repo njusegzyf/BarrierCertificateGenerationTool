@@ -6,7 +6,7 @@ rangeCandicatesCount = length(phyRanges);
 if length(pLambdaRanges) ~= rangeCandicatesCount
     error('Inconsistent length of range candidates.');
 end
-if phyRangesInVerify ~= 0 && length(phyRangesInVerify) ~= rangeCandicatesCount
+if ~isempty(phyRangesInVerify) && length(phyRangesInVerify) ~= rangeCandicatesCount
     error('Inconsistent length of range candidates.');
 end
 
@@ -19,16 +19,24 @@ lp = LinearProgram4_v3.createLpWithoutRanges(vars, f, eps, theta, psy, zeta, deg
 for i = 1 : rangeCandicatesCount
     phyRange = phyRanges(i);
     pLambdaRange = pLambdaRanges(i);
-    if phyRangesInVerify == 0
+    if isempty(phyRangesInVerify)
         phyRangeInVerify = 0;
     else
         phyRangeInVerify = phyRangesInVerify(i);
     end
     
-    import lp4.runAndVerifyWithLambdaAndPhyV4
-    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaAndPhyV4(...
-        lp, phyRange, pLambdaRange, phyRangeInVerify);
-
+    import lp4.Lp4Config
+    if Lp4Config.IS_VERIFY_WITH_PHY
+        import lp4.runAndVerifyWithLambdaAndPhyV4
+        [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaAndPhyV4(...
+            lp, phyRange, pLambdaRange, phyRangeInVerify);
+    else
+        import lp4.runAndVerifyWithLambdaV4
+        [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyWithLambdaV4(...
+            lp, phyRange, pLambdaRange, phyRangeInVerify);
+    end
+    
+    
     if isVerified
         return;
     end

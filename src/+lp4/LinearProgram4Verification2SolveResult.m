@@ -95,38 +95,45 @@ classdef LinearProgram4Verification2SolveResult
             lp = this.linearProgram;
             flag = this.exitflag;
             
-            % diaplay code from lp3
-            disp('--------------------------------------------------------------');
-            disp('The parameter setting:');
-            disp(['degree: ', num2str(lp.degree),...
+            if this.hasSolution()
+                disp('Verification succeeded.');
+            else
+                disp('Verification failed.');
+            end
+            disp(['The parameter setting:',...
+                'phy degree: ', num2str(lp.degree),...
                 '; eps1: ',num2str(lp.eps(1)),...
                 '; eps2: ',num2str(lp.eps(2))]);
             
-            import lp4util.reshapeToVector
-            
-            if (flag == 1)
-                disp('--------------------------------------------------------------');
-                disp('The coefficients of function phy is:');
-                disp(reshapeToVector(this.getPhyCoefficient()));
-                disp('--------------------------------------------------------------');
-                disp('The function phy is:');
-                disp(this.getPhyExpression());
-                disp('--------------------------------------------------------------');
-                disp('The computation time is:');
-                disp(this.time);
-                disp('--------------------------------------------------------------');
-            elseif (flag == 0)
-                disp('--------------------------------------------------------------');
-                disp('Maximum number of iterations reached.');
-                disp('--------------------------------------------------------------');
-            elseif flag < 0
-                disp('--------------------------------------------------------------');
-                disp(['The problem with degree ', num2str(lp.degree),' maybe have no solution.']);
-                disp('--------------------------------------------------------------');
-            else % flag > 1
+            import lp4.Lp4Config
+            if this.hasSolution() || Lp4Config.IS_PRINT_FAILED_VERIFICATION_INFO
+                % diaplay code from lp3
+                import lp4util.reshapeToVector
+                if (flag == 1)
+                    disp('--------------------------------------------------------------');
+                    disp('The coefficients of function phy is:');
+                    disp(reshapeToVector(this.getPhyCoefficient()));
+                    disp('--------------------------------------------------------------');
+                    disp('The function phy is:');
+                    disp(this.getPhyExpression());
+                    disp('--------------------------------------------------------------');
+                    disp('The computation time is:');
+                    disp(this.time);
+                    disp('--------------------------------------------------------------');
+                elseif (flag == 0)
+                    disp('--------------------------------------------------------------');
+                    disp('Maximum number of iterations reached.');
+                    disp('--------------------------------------------------------------');
+                elseif flag < 0
+                    disp('--------------------------------------------------------------');
+                    disp(['The problem with degree ', num2str(lp.degree),' maybe have no solution.']);
+                    disp('--------------------------------------------------------------');
+                else % flag > 1
+                end
             end
-        end
-    end
+        end % function printSolution
+        
+    end % methods
     
     methods (Static = true)
     end

@@ -7,7 +7,7 @@ rangeCandicatesCount = length(phyRanges);
 if length(pLambdaRanges) ~= rangeCandicatesCount
     error('Inconsistent length of range candidates.');
 end
-if phyRangesInVerify ~= 0 && length(phyRangesInVerify) ~= rangeCandicatesCount
+if ~isempty(phyRangesInVerify) && length(phyRangesInVerify) ~= rangeCandicatesCount
     error('Inconsistent length of range candidates.');
 end
 

@@ -5,9 +5,17 @@ rangesLength = length(phyRanges);
 if length(pLambdaRanges) ~= rangesLength
     error('Inconsistent length of range candidates.');
 end
-if phyRangesInVerify ~= 0 && length(phyRangesInVerify) ~= rangesLength
-    error('Inconsistent length of range candidates.');
+if (length(phyRangesInVerify) == 1 && phyRangesInVerify == 0) || isempty(phyRangesInVerify)
+    % if pass a 0 or an empty array
+    isUsingPhyRangesInVerify = false;
+    phyRangesCandidatesInVerify = [];
+else
+    isUsingPhyRangesInVerify = true;
+    if length(phyRangesInVerify) ~= rangesLength
+        error('Inconsistent length of range candidates.');
+    end
 end
+
 
 import lp4util.Partition
 verstring = char(version);
@@ -15,8 +23,8 @@ if verstring(1) == '9'
     % for new matlab version like 2017b, just use arrayfun
     phyRangeCandidates = arrayfun(@(x) Partition(-x, x), phyRanges);
     pLambdaRangeCandidates = arrayfun(@(x) Partition(-x, x), pLambdaRanges);
-    if phyRangesInVerify == 0
-        phyRangesCandidatesInVerify = 0;
+    if ~isUsingPhyRangesInVerify
+        phyRangesCandidatesInVerify = [];
     else
         phyRangesCandidatesInVerify = arrayfun(@(x) Partition(-x, x), phyRangesInVerify);
     end
@@ -26,8 +34,8 @@ else
     % pre allocated spaces
     phyRangeCandidates = repmat(Partition(0, 0), 1, rangesLength);
     pLambdaRangeCandidates = repmat(Partition(0, 0), 1, rangesLength);
-    if phyRangesInVerify == 0
-        phyRangesCandidatesInVerify = 0;
+    if ~isUsingPhyRangesInVerify
+        phyRangesCandidatesInVerify = [];
     else
         phyRangesCandidatesInVerify = repmat(Partition(0, 0), 1, rangesLength);
     end
@@ -38,7 +46,7 @@ else
         phyRangeCandidates(i) = Partition(-phyRange, phyRange);
         pLambdaRange = pLambdaRanges(i);
         pLambdaRangeCandidates(i) = Partition(-pLambdaRange, pLambdaRange);
-        if (phyRangesInVerify ~= 0)
+        if isUsingPhyRangesInVerify
             phyRangeInVerify = phyRangesInVerify(i);
             phyRangesCandidatesInVerify(i) = Partition(-phyRangeInVerify, phyRangeInVerify);
         end

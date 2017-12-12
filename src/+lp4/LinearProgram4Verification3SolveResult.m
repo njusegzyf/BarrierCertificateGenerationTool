@@ -45,9 +45,9 @@ classdef LinearProgram4Verification3SolveResult
             lp = this.linearProgram;
             import lp4util.reshapeToVector
             res = reshapeToVector(this.getLambdaCoefficient()) * monomials(lp.indvars, 0 : lp.lambdaDegree);
-        end 
+        end
         
-
+        
         function res = verify(this)
             for i = 1 : 3
                 if ~(this.verifyExpr(i))
@@ -86,36 +86,50 @@ classdef LinearProgram4Verification3SolveResult
             lp = this.linearProgram;
             flag = this.exitflag;
             
-            % diaplay code from lp3
-            disp('--------------------------------------------------------------');
-            disp('The parameter setting:');
-            disp(['lambdaDegree: ', num2str(lp.lambdaDegree),...
+            if this.hasSolution()
+                disp('Verification succeeded.');
+            else
+                disp('Verification failed.');
+            end
+            disp(['The parameter setting:',...
+                'lambda degree: ', num2str(lp.lambdaDegree),...
                 '; eps1: ',num2str(lp.eps(1)),...
                 '; eps2: ',num2str(lp.eps(2))]);
             
-            if (flag == 1)
+            import lp4.Lp4Config
+            if this.hasSolution() || Lp4Config.IS_PRINT_FAILED_VERIFICATION_INFO
+                % diaplay code from lp3
                 disp('--------------------------------------------------------------');
-                disp('The coefficients of function lambda is:');
-                disp(this.getLambdaCoefficient());
-                disp('--------------------------------------------------------------');
-                disp('The function lambda is:');
-                disp(this.getLambdaExpression());
-                disp('--------------------------------------------------------------');
-                disp('The computation time is:');
-                disp(this.time);
-                disp('--------------------------------------------------------------');
-            elseif (flag == 0)
-                disp('--------------------------------------------------------------');
-                disp('Maximum number of iterations reached.');
-                disp('--------------------------------------------------------------');
-            elseif flag < 0
-                disp('--------------------------------------------------------------');
-                disp(['The problem with lambdaDegree ', num2str(lp.lambdaDegree),' maybe have no solution.']);
-                disp('--------------------------------------------------------------');
-            else % flag > 1
+                disp('The parameter setting:');
+                disp(['lambdaDegree: ', num2str(lp.lambdaDegree),...
+                    '; eps1: ',num2str(lp.eps(1)),...
+                    '; eps2: ',num2str(lp.eps(2))]);
+                
+                if (flag == 1)
+                    disp('--------------------------------------------------------------');
+                    disp('The coefficients of function lambda is:');
+                    disp(this.getLambdaCoefficient());
+                    disp('--------------------------------------------------------------');
+                    disp('The function lambda is:');
+                    disp(this.getLambdaExpression());
+                    disp('--------------------------------------------------------------');
+                    disp('The computation time is:');
+                    disp(this.time);
+                    disp('--------------------------------------------------------------');
+                elseif (flag == 0)
+                    disp('--------------------------------------------------------------');
+                    disp('Maximum number of iterations reached.');
+                    disp('--------------------------------------------------------------');
+                elseif flag < 0
+                    disp('--------------------------------------------------------------');
+                    disp(['The problem with lambdaDegree ', num2str(lp.lambdaDegree),' maybe have no solution.']);
+                    disp('--------------------------------------------------------------');
+                else % flag > 1
+                end
             end
-        end
-    end
+        end % function printSolution
+        
+    end % methods
     
     methods (Static = true)
     end

@@ -448,7 +448,7 @@ classdef LinearProgram4_v3
             
             if isa(phyRangeInVerify, 'lp4util.Partition')
                 lpVer.pPartitions = repmat(phyRangeInVerify, 1024, 1);
-                lpVer.setPhyConstraint();
+                lpVer = lpVer.setPhyConstraint();
             end
             
             lpVer = lpVer.setDevVarsConstraint();
@@ -462,6 +462,9 @@ classdef LinearProgram4_v3
                 disp('Verify feasible solution succeed, norms ;');
                 disp(resNorms);
             end
+            
+            import lp4.Lp4Config
+            Lp4Config.displayDelimiterLine();
         end
         
         function [lpVer, solveResVer, resNorms] = verifyWithPhy(lp, solveRes)
@@ -504,6 +507,9 @@ classdef LinearProgram4_v3
                 disp('Verify feasible solution succeed, norms ;');
                 disp(resNorms);
             end
+            
+            import lp4.Lp4Config
+            Lp4Config.displayDelimiterLine();
         end
         
         function res = getPhyCoefficientStart(this)

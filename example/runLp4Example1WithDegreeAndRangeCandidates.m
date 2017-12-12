@@ -13,13 +13,14 @@ warning('off')
 
 
 % set the degree of phy and lambda
-degrees = [1, 2, 3];
+degrees = [3];
 pLambdaDegrees = [1, 2, 3];
 
 % set the ranges
 ranges = [1, 0.5, 0.3, 0.15, 0.1];
+pRanges = repmat(10, 1, length(ranges)); % 这里 10 表示验证时 phy 的范围限制在 [-10, 10]
 import lp4util.createRangeCandidates
-[phyRanges, pLambdaRanges, phyRangesInVerify] = createRangeCandidates(ranges, ranges, 0);
+[phyRanges, pLambdaRanges, phyRangesInVerify] = createRangeCandidates(ranges, ranges, pRanges);
 
 % Note; For degrees = 3, pLambdaDegrees = 1, ranges = 1, Ok.
 
