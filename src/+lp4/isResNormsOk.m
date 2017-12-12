@@ -1,7 +1,8 @@
 function res = isResNormsOk(resNorms)
 
+    import lp4.Lp4Config
     for norm = resNorms
-        if norm >= 0.00001
+        if norm >= Lp4Config.RES_NORM_THRESHOLD
             res = false;
             return;
         end
