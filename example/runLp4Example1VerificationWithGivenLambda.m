@@ -51,11 +51,9 @@ lp = LinearProgram4Verification2(vars);
 lp.f = f;
 lp.eps = eps;
 
-% Set the degree of phy
+% set the degree of phy and lambda
 lp = lp.setDegreeAndInit(phyDegree);
-
 lp.lambda = lambda;
-% 0; % OK
 
 lp = lp.setThetaConstraint(g_theta);
 lp = lp.setPsyConstraint(g_psy);

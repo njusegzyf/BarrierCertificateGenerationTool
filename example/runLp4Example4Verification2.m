@@ -42,9 +42,9 @@ lp.eps = eps;
 % Note; degree >= 2
 
 % Set the degree of phy
-lp = lp.setDegreeAndInit(4);
+lp = lp.setDegreeAndInit(2);
 
-lp.lambda = 0;
+lp.lambda = 1;
 % - x2^2/2 - 1/2;
 
 lp = lp.setThetaConstraint(g_theta);

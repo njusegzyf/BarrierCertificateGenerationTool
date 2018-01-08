@@ -1,5 +1,6 @@
-function  [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndverifyFromSolveResult(...
+function  [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyFromSolveResult(...
     lp, solveRes, phyCoffDelta, lambdaCoffDelta, phyRangeInVerify)
+%runAndVerifyFromSolveResult Reset the ranges of the `lp` based on the `solveRes`, and then rerun the lp and verify it.
 
 if ~solveRes.hasSolution()
     error('');

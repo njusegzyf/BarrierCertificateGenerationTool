@@ -1,21 +1,22 @@
-function [lp, solveRes, lpVer, solveResVer, resNorms] = runLp4BenkEx40WithDegreeAndRangeCandidates()
+function [lp, solveRes, lpVer, solveResVer, resNorms] = runLp4Example10WithDegreeAndRangeCandidates()
 
-clear;
+clear; 
 echo on;
 
-% disable warning of `Support of character vectors will be removed in a future release.`
+% disable warning of `Support of character vectors will be removed in a future release.` 
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4BenkEx40Problem();
+% get the problem
+[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example10Problem();
+                              
 
+% set the degree of phy and lambda
+degrees = [1,2,3,4];
+pLambdaDegrees = [0,1,2,3];
 
-
-% Set the degree of phy and lambda
-degrees = [1, 2, 3, 4];
-pLambdaDegrees = [1, 2, 3];
-
-ranges = [1, 0.5, 0.3, 0.15, 0.1];
+% set the ranges
+ranges = [0.8, 0.4];
 import lp4util.createRangeCandidates
 [phyRanges, pLambdaRanges, phyRangesInVerify] = createRangeCandidates(ranges, ranges, 0);
 

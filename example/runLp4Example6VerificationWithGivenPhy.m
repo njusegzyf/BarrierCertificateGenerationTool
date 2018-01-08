@@ -1,0 +1,53 @@
+function [lp, solveRes, resNorms] = runLp4Example6VerificationWithGivenPhy()
+
+clear;
+echo on;
+
+% disable warning of `Support of character vectors will be removed in a future release.`
+% which is produced by function `monomials`.
+warning('off')
+
+% get the problem
+[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example6Problem();
+x1 = vars(1);
+x2 = vars(2);
+x3 = vars(3);
+
+
+
+lambdaDegree = 1;
+phy = (88423944282617*x1^3*x2)/70368744177664 - (739766475455519*x1^4)/70368744177664 - (30072123736521*x1^3*x3)/70368744177664 + (8599922328761215*x1^3)/70368744177664 - (272388649487245*x1^2*x2^2)/35184372088832 - (17397820500869*x1^2*x2*x3)/4398046511104 - (77182547658755*x1^2*x2)/8796093022208 - (391747178413869*x1^2*x3^2)/35184372088832 - (174455554343947*x1^2*x3)/8796093022208 - (5301100475538559*x1^2)/4398046511104 + (8234824484577*x1*x2^3)/70368744177664 - (128150442695069*x1*x2^2*x3)/35184372088832 + (5343683524896709*x1*x2^2)/70368744177664 - (43918823522261*x1*x2*x3^2)/70368744177664 + (4642525186762571*x1*x2*x3)/35184372088832 - (978501918943085*x1*x2)/8796093022208 + (416973294609145*x1*x3^3)/140737488355328 + (256523471645939*x1*x3^2)/70368744177664 - (1791059308720201*x1*x3)/17592186044416 + (6926010829418439*x1)/4398046511104 - (10862947586521*x2^4)/35184372088832 - (2014271583901*x2^3*x3)/70368744177664 + (575598886891359*x2^3)/70368744177664 + (5588822953507*x2^2*x3^2)/70368744177664 + (100772925882609*x2^2*x3)/8796093022208 - (5078765610649059*x2^2)/8796093022208 + (7016816134757*x2*x3^3)/35184372088832 - (1243779513454949*x2*x3^2)/70368744177664 + (3660736582247619*x2*x3)/70368744177664 + (1228860817181537*x2)/549755813888 - (28260279894299*x3^4)/140737488355328 - (98782844554439*x3^3)/140737488355328 + (150828651447081*x3^2)/70368744177664 - (2630306869781799*x3)/8796093022208 + 5468796576563583/2199023255552;
+
+
+
+import lp4.LinearProgram4Verification3
+lp = LinearProgram4Verification3(vars);
+
+lp.f = f;
+lp.eps = eps;
+
+% set the degree of lambda and phy
+lp = lp.setDegreeAndInit(lambdaDegree);
+lp.phy = phy;
+
+lp = lp.setThetaConstraint(g_theta);
+lp = lp.setPsyConstraint(g_psy);
+lp = lp.setZetaConstraint(g_zeta);
+lp = lp.generateEqsForConstraint1To3();
+
+lp = lp.setDevVarsConstraint();
+
+% solve the lp problem
+[lp, solveRes, resNorms] = lp.solve();
+
+if ~(solveRes.hasSolution())
+    disp('Verify failed.');
+else
+    disp('Verify succeed, norms ;');
+    disp(resNorms);
+end
+
+warning('on')
+
+echo off;
+end

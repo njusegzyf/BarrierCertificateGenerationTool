@@ -23,9 +23,7 @@ if verstring(1) == '9'
     % for new matlab version like 2017b, just use arrayfun
     phyRangeCandidates = arrayfun(@(x) Partition(-x, x), phyRanges);
     pLambdaRangeCandidates = arrayfun(@(x) Partition(-x, x), pLambdaRanges);
-    if ~isUsingPhyRangesInVerify
-        phyRangesCandidatesInVerify = [];
-    else
+    if isUsingPhyRangesInVerify
         phyRangesCandidatesInVerify = arrayfun(@(x) Partition(-x, x), phyRangesInVerify);
     end
 else
@@ -34,9 +32,7 @@ else
     % pre allocated spaces
     phyRangeCandidates = repmat(Partition(0, 0), 1, rangesLength);
     pLambdaRangeCandidates = repmat(Partition(0, 0), 1, rangesLength);
-    if ~isUsingPhyRangesInVerify
-        phyRangesCandidatesInVerify = [];
-    else
+    if isUsingPhyRangesInVerify
         phyRangesCandidatesInVerify = repmat(Partition(0, 0), 1, rangesLength);
     end
     
@@ -54,4 +50,3 @@ else
 end
 
 end
-

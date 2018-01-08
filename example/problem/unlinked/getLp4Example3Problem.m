@@ -1,29 +1,28 @@
 function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example3Problem()
 
 % independent variables
-syms x1 x2;
-vars = [x1 x2];
+syms x y;
+vars = [x y];
 
 % Constructing the vector field dx/dt = f
-f = [2*x1-x1*x2;
-     2*x1^2-x2;];
+f = [1+x^2*y-2.5*x;
+     1.5*x-x^2*y];
 
-eps = [0.001,0.001];
+eps = [0.01, 0.01];
 
 % Constructing the theta constraint
-theta1 = x1^2+(x2+2)^2;
-
-g_theta = [theta1];
+theta1 = 10*x-9;
+theta2 = 10*y;
+g_theta = [theta1,theta2];
 
 % Constructing the psy constraint
-psy1 = (x1+7)/14;
-psy2 = (x2+7)/14;
-
+psy1 = x;
+psy2 = y;
 g_psy = [psy1, psy2];
 
 % Constructing the zeta constraint
-zeta1 = x1^2+(x2-5.2)^2;
-
-g_zeta = [zeta1];
+zeta1 = 5*x-1;
+zeta2 = 5*y-2;
+g_zeta = [zeta1,zeta2];
 
 end

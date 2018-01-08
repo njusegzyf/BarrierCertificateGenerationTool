@@ -23,6 +23,8 @@ classdef Lp4Config
         VERIFICATION_PHY_DEGREE_INC = 0;
         % 第二步验证时，如果求的是 lambda，则其次数限制 = 第一步求解时 lambda，的次数限制 + VERIFICATION_PHY_DEGREE_INC
         VERIFICATION_LAMBDA_DEGREE_INC = 0;
+        
+        DEFAULT_PARTITION_REPEAT_NUM = 1024;
     end
     
     methods (Static)
@@ -38,6 +40,15 @@ classdef Lp4Config
         
         function displayDelimiterLine()
             disp('--------------------------------------------------------------');
+        end
+        
+        function displaySolveRes(solveRes, resNorms)
+            if ~(solveRes.hasSolution())
+                disp('Verify failed.');
+            else
+                disp('Verify succeed, norms ;');
+                disp(resNorms);
+            end
         end
     end
 end

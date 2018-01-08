@@ -1,28 +1,34 @@
 function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example7Problem()
 
+% From FM2016 ref 19 Providing a Basin of Attraction to a Target Region by Computation of Lyapunov-like Functions
+% Example 6 
+
 % independent variables
-syms x y;
-vars = [x y];
+syms x1 x2 x3;
+vars = [x1 x2 x3];
 
 % Constructing the vector field dx/dt = f
-f = [1+x^2*y-2.5*x;
-     1.5*x-x^2*y];
+f = [-x2; -x3;  -x1-2*x2-x3+x1^3];
 
-eps = [0.01, 0.01];
+eps = [0.001,0.001];
 
 % Constructing the theta constraint
-theta1 = 10*x-9;
-theta2 = 10*y;
-g_theta = [theta1,theta2];
+theta1 = x1+0.25;
+theta2 = x2+0.25;
+theta3 = x3+0.75;
+g_theta = [theta1,theta2,theta3];
 
 % Constructing the psy constraint
-psy1 = x;
-psy2 = y;
-g_psy = [psy1, psy2];
+psy1 = (x1+2)/4;
+psy2 = (x2+2)/4;
+psy3 = (x3+2)/4;
+g_psy = [psy1, psy2, psy3];
 
 % Constructing the zeta constraint
-zeta1 = 5*x-1;
-zeta2 = 5*y-2;
-g_zeta = [zeta1,zeta2];
+zeta1 = x1-1;
+zeta2 = x2+2;
+zeta3 = x3+2;
+
+g_zeta = [zeta1,zeta2,zeta3];
 
 end
