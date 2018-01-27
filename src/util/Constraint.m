@@ -10,7 +10,15 @@ classdef Constraint
     b
   end
   
-  methods 
+  methods
+      function this = Constraint()
+          this.A = [];
+      end
+      
+      function res = isEqGenerated(this)
+          res = ~isempty(this.A);
+      end
+      
       function res = isEmptyConstraint(this)
           res = strcmp(this.name, 'empty');
       end

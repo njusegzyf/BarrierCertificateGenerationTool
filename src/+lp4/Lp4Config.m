@@ -25,6 +25,8 @@ classdef Lp4Config
         VERIFICATION_LAMBDA_DEGREE_INC = 0;
         
         DEFAULT_PARTITION_REPEAT_NUM = 1024;
+        
+        DEFAULT_EPS = 0.0001
     end
     
     methods (Static)

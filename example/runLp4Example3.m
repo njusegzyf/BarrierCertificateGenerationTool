@@ -18,7 +18,7 @@ lp.eps = eps;
 
 % Set the degree of phy
 degree = 2;
-pLambdaDegree = 2;
+pLambdaDegree = 0;
 lp = lp.setDegreeAndInit(degree, pLambdaDegree);
 
 

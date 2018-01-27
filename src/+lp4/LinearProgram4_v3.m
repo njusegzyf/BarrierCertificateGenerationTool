@@ -20,7 +20,7 @@ classdef LinearProgram4_v3
         
         pLambdaDegree
         pLambdaPolynomial % 修改后的问题1中的λ
-        pLambdaNormalizedSymbolicVars
+        
         wSymbolicVars
         wExpression
         rouVar
@@ -49,7 +49,6 @@ classdef LinearProgram4_v3
             
             this.degree = 0;
             this.pLambdaDegree = 0;
-            this.phy = 0;
             
             this.eps = [];
             
@@ -416,10 +415,12 @@ classdef LinearProgram4_v3
             
         end % function solve
         
+        % `verify` is forward to `verifyWithLambda`
         function [lpVer, solveResVer, resNorms] = verify(lp, solveRes, phyRangeInVerify)
-            lpVer = 0;
-            solveResVer = 0;
-            resNorms = 0;
+            [lpVer, solveResVer, resNorms] = verifyWithLambda(lp, solveRes, phyRangeInVerify);
+        end
+        
+        function [lpVer, solveResVer, resNorms] = verifyWithLambda(lp, solveRes, phyRangeInVerify)
             
             if ~(solveRes.hasSolution())
                 disp('Not find feasible solution to verify.');
@@ -468,9 +469,6 @@ classdef LinearProgram4_v3
         end
         
         function [lpVer, solveResVer, resNorms] = verifyWithPhy(lp, solveRes)
-            lpVer = 0;
-            solveResVer = 0;
-            resNorms = 0;
             
             if ~(solveRes.hasSolution())
                 disp('Not find feasible solution to verify.');

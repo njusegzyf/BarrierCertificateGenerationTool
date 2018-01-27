@@ -12,8 +12,8 @@ lp = LinearProgram4_v3.createLp(vars, f, eps, theta, psy, zeta, degree, pLambdaD
 
 isVerified = false;
 
-% verify the lp problem
-[lpVer, solveResVer, resNorms] = lp.verify(solveRes, phyRangeInVerify);
+% verify the lp problem with the computed lambda
+[lpVer, solveResVer, resNorms] = lp.verifyWithGivenLambda(solveRes, phyRangeInVerify);
 import lp4.isResNormsOk
 if (solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms))
     isVerified = true;

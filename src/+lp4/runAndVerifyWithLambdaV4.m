@@ -10,8 +10,8 @@ lp = lp.setWConstraint();
 
 isVerified = false;
 
-% verify the lp problem
-[lpVer, solveResVer, resNorms] = lp.verify(solveRes, phyRangeInVerify);
+% verify the lp problem with the computed lambda
+[lpVer, solveResVer, resNorms] = lp.verifyWithLambda(solveRes, phyRangeInVerify);
 import lp4.isResNormsOk
 if (solveRes.hasSolution() && solveResVer.hasSolution() && isResNormsOk(resNorms))
     isVerified = true;

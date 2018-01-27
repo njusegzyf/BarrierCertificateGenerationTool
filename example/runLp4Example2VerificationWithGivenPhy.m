@@ -50,3 +50,98 @@ warning('on')
 
 echo off;
 end
+
+
+
+% Verification succeeded.
+% The parameter setting:phy degree: 3; eps1: 0.001; eps2: 0.001
+% --------------------------------------------------------------
+% The coefficients of function phy is:
+%    -0.0411   -0.0081    0.0074    0.0050    0.0007    0.0025   -0.0002   -0.0002    0.0002   -0.0004
+% 
+% --------------------------------------------------------------
+% The function phy is:
+% - (2263286168729447*x1^3)/9223372036854775808 - (8341502826980283*x1^2*x2)/36893488147419103232 + (5739950446431231*x1^2)/1152921504606846976 + (7880846712646413*x1*x2^2)/36893488147419103232 + (6463301049956541*x1*x2)/9223372036854775808 - (4649760513280169*x1)/576460752303423488 - (7880665484799027*x2^3)/18446744073709551616 + (5749322513946143*x2^2)/2305843009213693952 + (8475741288162059*x2)/1152921504606846976 - 5925416967917561/144115188075855872
+%  
+% --------------------------------------------------------------
+% The computation time is:
+%     0.2904
+% 
+% --------------------------------------------------------------
+% Verify succeed, norms ;
+%    1.0e-16 *
+% 
+%     0.4420    0.9089    0.0664
+% 
+% 
+% ans = 
+% 
+%   LinearProgram4Verification2 -  Ù–‘:
+% 
+%           indvars: [1°¡2 sym]
+%            degree: 3
+%               phy: [1°¡1 sym]
+%           phySize: 10
+%            lambda: [1°¡1 sym]
+%               eps: [1.0000e-03 1.0000e-03]
+%                 f: [2°¡1 sym]
+%           decvars: [1°¡199 sym]
+%             exprs: [1°¡4 Constraint]
+%     phyPolynomial: [1°¡1 lp4util.SymbolicPolynomial]
+%          solution: []
+%          c1Length: 84
+%          c2Length: 70
+%          c3Length: 35
+%       pPartitions: []
+% 
+% runLp4Example2VerificationWithGivenPhy
+% constraint theta is processed: 2018-01-08 19:51:31
+% constraint psy is processed: 2018-01-08 19:52:03
+% constraint zeta is processed: 2018-01-08 19:52:19
+% 
+% Optimal solution found.
+% 
+% Verification succeeded.
+% The parameter setting:lambda degree: 1; eps1: 1e-05; eps2: 1e-05
+% --------------------------------------------------------------
+% The parameter setting:
+% lambdaDegree: 1; eps1: 1e-05; eps2: 1e-05
+% --------------------------------------------------------------
+% The coefficients of function lambda is:
+%    -1.8750
+%          0
+%          0
+% 
+% --------------------------------------------------------------
+% The function lambda is:
+% -15/8
+%  
+% --------------------------------------------------------------
+% The computation time is:
+%     0.3692
+% 
+% --------------------------------------------------------------
+% Verify succeed, norms ;
+%    1.0e-16 *
+% 
+%     0.0330    0.1793    0.0129
+% 
+% 
+% ans = 
+% 
+%   LinearProgram4Verification3 -  Ù–‘:
+% 
+%              indvars: [1°¡2 sym]
+%         lambdaDegree: 1
+%                  phy: [1°¡1 sym]
+%               lambda: [1°¡1 sym]
+%           lambdaSize: 3
+%                  eps: [1.0000e-05 1.0000e-05]
+%                    f: [2°¡1 sym]
+%              decvars: [1°¡353 sym]
+%                exprs: [1°¡4 Constraint]
+%     lambdaPolynomial: [1°¡1 lp4util.SymbolicPolynomial]
+%             solution: []
+%             c1Length: 70
+%             c2Length: 210
+%             c3Length: 70

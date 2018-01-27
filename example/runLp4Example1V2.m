@@ -45,8 +45,8 @@ lp.f = f;
 lp.eps = eps;
 
 % Set the degree of phy
-degree = 3;
-pLambdaDegree = 1;
+degree = 2;
+pLambdaDegree = 2;
 lp = lp.setDegreeAndInit(degree, pLambdaDegree);
 
 % Note:

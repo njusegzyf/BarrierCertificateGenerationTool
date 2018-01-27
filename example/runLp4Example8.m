@@ -1,4 +1,4 @@
-function [lp, solveRes] = runLp4Example7()
+function [lp, solveRes] = runLp4Example8()
 
 clear; 
 echo on;
@@ -7,7 +7,7 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example7Problem();
+[vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example8Problem();
 
 
 

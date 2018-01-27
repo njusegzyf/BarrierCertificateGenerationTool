@@ -1,5 +1,5 @@
 classdef LinearProgram4SolveResult
-    %LinearProgram4SolveResult Represents a solve result of a LinearProgram4.
+    %LinearProgram4SolveResult Represents a solve result of a HybridLinearProgram.
     
     properties
         linearProgram
@@ -18,7 +18,7 @@ classdef LinearProgram4SolveResult
     
     methods
         function this = LinearProgram4SolveResult(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg)
-            %LINEARPROGRAM4SOLUTION 构造此类的实例
+            %LinearProgram4SolveResult 构造此类的实例
             this.linearProgram = linearProgramArg;
             this.x = xArg;
             this.fval = fvalArg;

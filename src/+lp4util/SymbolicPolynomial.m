@@ -30,6 +30,11 @@ classdef SymbolicPolynomial
       import lp4util.SymbolicPolynomial
       res = SymbolicPolynomial(symbolicVars, maxDegree, coefficientVars, expression);
     end
+    
+    function res = createFixedSymbolicPolynomial(maxDegree, expr)
+      import lp4util.SymbolicPolynomial
+      res = SymbolicPolynomial([], maxDegree, [], expr);
+    end
 
   end 
 end

@@ -18,8 +18,8 @@ lp.f = f;
 lp.eps = eps;
 
 % Set the degree of phy
-degree = 3;
-pLambdaDegree = 2;
+degree = 4;
+pLambdaDegree = 0;
 lp = lp.setDegreeAndInit(degree, pLambdaDegree);
 
 lp = lp.setThetaConstraint(g_theta);
