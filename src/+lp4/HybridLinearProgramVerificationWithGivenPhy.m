@@ -1,42 +1,13 @@
-classdef HybridLinearProgramVerificationWithGivenPhy
+classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVerificationBase
     
     properties
-        indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
-        
-        stateNum
-        thetaStateIndex
-        
-        guardNum
-        
-        phys % 不同状态下的 phy
-        
-        eps
-        
-        fs % 在不同状态下的 f
-        
-        guards
-        
-        theta
-        psys
-        zetas
         
         pLambdaDegree
         pLambdaPolynomials % 修改后的问题1中的λ
         
         pReDegree
         pRePolynomials
-        
-        decvars % 问题1中的决策变量，包括 lambda, re, Cαβ, Cγδ, Cu,v
-        decvarsIndexes
-        
-        exprs
-        
-        pLambdaPartitions
-        pRePartitions
-        
-        linprogF
-        
-        isAttachRou
+
     end % properties
     
     methods
@@ -97,18 +68,6 @@ classdef HybridLinearProgramVerificationWithGivenPhy
             this = this.setLinprogF();
         end
         
-        function this = set.phys(this, phys)
-            this.phys = phys;
-        end
-        
-        function this = set.fs(this, fs)
-            this.fs = fs;
-        end
-        
-        function this = set.eps(this, eps)
-            this.eps = eps;
-        end
-        
         function [this, startIndex, endIndex] = addDecisionVars(this, decvars)
             % addDecisionVars add decision variables.
             %
@@ -152,6 +111,11 @@ classdef HybridLinearProgramVerificationWithGivenPhy
                 currentStatePReExpr = currentStatePRe * monomials(this.indvars, 0 : pReDegree);
                 this.pRePolynomials = [this.pRePolynomials, SymbolicPolynomial(this.indvars, pReDegree, currentStatePRe, currentStatePReExpr)];
             end
+            
+            if this.isAttachRou
+                this.rouVar = sym('rou');
+                [this, this.decvarsIndexes.rouIndex, ~] = this.addDecisionVars(this.rouVar);
+            end
         end
         
         function this = setThetaConstraint(this, theta)
@@ -162,7 +126,7 @@ classdef HybridLinearProgramVerificationWithGivenPhy
                 expr = Constraint.createEmptyConstraint();
                 expr.num = 1;
                 this.exprs = [this.exprs, expr];
-            p    return;
+                p    return;
             end
             
             expr = Constraint();
@@ -301,6 +265,11 @@ classdef HybridLinearProgramVerificationWithGivenPhy
             for i = 1 : this.guardNum
                 guard = this.guards(i);
                 
+                % for an empty constrain
+                if isempty(guard.exprs)
+                    continue;
+                end
+                
                 exprNum = this.nextExprNumIndex();
                 
                 expr = Constraint();
@@ -357,7 +326,7 @@ classdef HybridLinearProgramVerificationWithGivenPhy
                 name = strcat('c_u_v', num2str(zetaIndex));
                 c_u_v = sym(name,[1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
                 [constraintDecvars, expression] = constraintExpression(de, zeta.exprs, c_u_v);
-                 [this, this.decvarsIndexes.cZetaStarts(zetaIndex), this.decvarsIndexes.cZetaEnds(zetaIndex)] = this.addDecisionVars(constraintDecvars);
+                [this, this.decvarsIndexes.cZetaStarts(zetaIndex), this.decvarsIndexes.cZetaEnds(zetaIndex)] = this.addDecisionVars(constraintDecvars);
                 
                 constraint3 = constraint3 + expression;
                 
@@ -392,7 +361,7 @@ classdef HybridLinearProgramVerificationWithGivenPhy
             cStart = this.decvarsIndexes.cThetaStart - 1;  % Note: `cStart + 1` is the actual start index
             cLength = length(this.decvars) - cStart;
             expr.A = zeros(cLength, length(this.decvars));
-
+            
             for k = 1 : 1 : cLength
                 expr.A(k, cStart + k) = -1;
             end
@@ -400,60 +369,14 @@ classdef HybridLinearProgramVerificationWithGivenPhy
                 rouIndex = this.decvarsIndexes.rouIndex;
                 for k = 1 : cLength
                     % - rou
-                    expr.A(k, rouIndex) = -1; 
+                    expr.A(k, rouIndex) = -1;
                 end
             end
             expr.b = zeros(cLength, 1);
             
             this.exprs(exprNum) = expr;
         end % function setDecVarsConstraint
-        
-        function this = setLinprogF(this)
-            % init f with all zeros
-            this.linprogF = zeros(1, length(this.decvars));
-            
-            if this.isAttachRou
-                this.linprogF(this.decvarsIndexes.rouIndex) = 1;
-            end
-        end
-        
-        function [this, solveRes, resNorms] = solve(this)
-            Aeq = [];
-            beq = [];
-            Aie = [];
-            bie = [];
-            
-            for k = 1 : 1 : length(this.exprs)
-                if this.exprs(k).isEmptyConstraint()
-                    continue;
-                end
                 
-                if strcmp(this.exprs(k).type, 'eq')
-                    Aeq = [Aeq; this.exprs(k).A];
-                    beq = [beq; this.exprs(k).b];
-                else
-                    Aie = [Aie; this.exprs(k).A];
-                    bie = [bie; this.exprs(k).b];
-                end
-            end
-            
-            tic;
-            [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq);
-            time = toc;
-            
-            import lp4.HybridLinearProgramVerificationWithGivenPhySolveRes
-            solveRes = HybridLinearProgramVerificationWithGivenPhySolveRes(this, x, fval, flag, time);
-            
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
-                solveRes.printSolution();
-            end
-            
-            % FIXME
-            resNorms = [];
-            
-        end % function solve
-        
         function res = getPLambdaCoefficientStart(this, i)
             res = this.decvarsIndexes.lambdaStarts(i);
         end
@@ -474,16 +397,28 @@ classdef HybridLinearProgramVerificationWithGivenPhy
             res = length(this.exprs) + 1;
         end
         
+        function solveRes = createSolveRes(this, x, fval, flag, time)
+            solveRes = lp4.HybridLinearProgramVerificationWithGivenPhySolveRes(this, x, fval, flag, time);
+        end
+        
     end % methods
     
     methods (Static)
         
-        function hlp = create(indvarsArg, stateNum,...
-                fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree,...
+        function hlp = create(indvarsArg, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree,...
                 phys)
             
             import lp4.HybridLinearProgramVerificationWithGivenPhy
             hlp = HybridLinearProgramVerificationWithGivenPhy(indvarsArg, stateNum, size(guards, 2));
+            hlp = hlp.init(fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree, phys);
+        end
+        
+        function hlp = createWithRou(indvarsArg, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree,...
+                phys)
+            
+            import lp4.HybridLinearProgramVerificationWithGivenPhy
+            hlp = HybridLinearProgramVerificationWithGivenPhy(indvarsArg, stateNum, size(guards, 2));
+            hlp.isAttachRou = true;
             hlp = hlp.init(fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree, phys);
         end
         

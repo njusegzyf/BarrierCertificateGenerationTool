@@ -30,15 +30,16 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
             res = (this.exitflag == 1);
         end
         
-        function res = getPhyCoefficient(this, i)
-            res = this.x(this.linearProgram.getPhyCoefficientStart(i) : this.linearProgram.getPhyCoefficientEnd(i));
-            % res = reshape(res, 1, size(res, 1));
+        function res = hasSolutionWithRou(this)
+            res = this.exitflag == 1 && this.getRou() <= 0;
         end
         
-        function res = getPhyExpression(this, i)
-            lp = this.linearProgram;
-            import lp4util.reshapeToVector
-            res = reshapeToVector(this.getPhyCoefficient(i)) * monomials(lp.indvars, 0 : lp.degree);
+        function res = getRou(this)
+            if this.linearProgram.isAttachRou
+                res = this.x(this.linearProgram.decvarsIndexes.rouIndex);
+            else
+                error('Rou is not used.')
+            end
         end
         
         function res = getPLmabdaCoefficient(this, i)
@@ -52,6 +53,13 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
             res = reshapeToVector(this.getPLmabdaCoefficient(i)) * monomials(lp.indvars, 0 : lp.pLambdaDegree);
         end
         
+        function res = getPLmabdaExpressions(this)
+            res(this.linearProgram.stateNum) = this.getPLmabdaExpression(this.linearProgram.stateNum);
+            for i = 1 : this.linearProgram.stateNum - 1
+                res(i) = this.getPLmabdaExpression(i);
+            end
+        end
+        
         function res = getPReCoefficient(this, i)
             res = this.x(this.linearProgram.getPReCoefficientStart(i) : this.linearProgram.getPReCoefficientEnd(i));
             % res = reshape(res, 1, size(res, 1));
@@ -61,6 +69,34 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
             lp = this.linearProgram;
             import lp4util.reshapeToVector
             res = reshapeToVector(this.getPReCoefficient(i)) * monomials(lp.indvars, 0 : lp.pReDegree);
+        end
+        
+        function res = getPReExpressions(this)
+            res(this.linearProgram.guardNum) = this.getPReExpression(this.linearProgram.guardNum);
+            for i = 1 : this.linearProgram.guardNum - 1
+                res(i) = this.getPReExpression(i);
+            end
+        end
+        
+        function res = computeExprNorm(this, index)
+            lp = this.linearProgram;
+            expr = lp.exprs(index);
+            
+            if strcmp(expr.name, 'empty') || strcmp(expr.type, 'ie')
+                res = 0;
+                return;
+            end
+            
+            mid = expr.A * this.x - expr.b;
+            res = norm(mid);
+        end
+        
+        function res = computeAllExprsNorms(this)
+            exprCount = length(this.linearProgram.exprs);
+            res(exprCount) = this.computeExprNorm(exprCount);
+            for i = 1 : exprCount - 1
+                res(i) = this.computeExprNorm(i);
+            end
         end
         
         function printSolution(this)

@@ -16,18 +16,20 @@ fixedPhy = [1; 1; 1; 1; 1; 1];
 
 % Set the degree of phy, lambda and re
 degrees = [2, 3];
-pLambdaDegrees = [1, 2];
-pReDegrees = [1, 2];
+pLambdaDegrees = [1]; % [1, 2];
+pReDegrees = [1]; % [1, 2];
 
-import lp4util.Partition
-rangeCandicatesCount = 1;
+import lp4util.createRangeCandidates
 ranges = [1];
+rangeCandicatesCount = length(ranges);
+[phyRanges, pLambdaRanges, pReRanges] = createRangeCandidates(ranges, ranges, ranges);
+
 % phys = [1, 0.3, 0.1];
 % pLambdas = [1, 0.3, 0.1];
 % pRes = [1, 0.3, 0.1];
-import lp4util.createRangeCandidates
+% rangeCandicatesCount = length(phys);
 % [phyRanges, pLambdaRanges, pReRanges] = createRangeCandidates(phys, pLambdas, pRes);
-[phyRanges, pLambdaRanges, pReRanges] = createRangeCandidates(ranges, ranges, ranges);
+
 
 
 isVerified = false;
@@ -68,9 +70,11 @@ for degree = degrees
                     return;
                 end
                 
+                lp4.Lp4Config.displayDelimiterLine();
+                
                 % if a large range has no solution, we can skip small ranges
                 if ~solveRes.hasSolution()
-                    return;
+                    continue;
                 end
             end
             

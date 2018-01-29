@@ -30,6 +30,18 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
             res = (this.exitflag == 1);
         end
         
+        function res = hasSolutionWithRou(this)
+            res = this.exitflag == 1 && this.getRou() <= 0;
+        end
+        
+        function res = getRou(this)
+            if this.linearProgram.isAttachRou
+                res = this.x(this.linearProgram.decvarsIndexes.rouIndex);
+            else
+                error('Rou is not used.')
+            end
+        end
+        
         function res = getPhyCoefficient(this, i)
             res = this.x(this.linearProgram.getPhyCoefficientStart(i) : this.linearProgram.getPhyCoefficientEnd(i));
             % res = reshape(res, 1, size(res, 1));
@@ -49,8 +61,8 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
         end
         
         function res = getCGuardCoefficient(this, i)
-           decvarIndexes = this.linearProgram.decvarsIndexes;
-           res = this.x(decvarIndexes.cGuardStarts(i):  decvarIndexes.cGuardEnds(i));
+            decvarIndexes = this.linearProgram.decvarsIndexes;
+            res = this.x(decvarIndexes.cGuardStarts(i):  decvarIndexes.cGuardEnds(i));
         end
         
         function guardExpr = getGuardExpr(this, i)
@@ -80,6 +92,11 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
         function res = computeExprNorm(this, index)
             lp = this.linearProgram;
             expr = lp.exprs(index);
+            
+            if strcmp(expr.name, 'empty') || strcmp(expr.type, 'ie')
+                res = 0;
+                return;
+            end
             
             mid = expr.A * this.x - expr.b;
             res = norm(mid);

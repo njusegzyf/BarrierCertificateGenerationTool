@@ -68,15 +68,20 @@ classdef LinearProgram4Verification3SolveResult
         end
         
         function res = verifyNorms(this)
-            res = [];
-            for i = 1 : 3
-                res = [res, this.verifyExprNorm(i)];
+            res(3) = this.verifyExprNorm(3);
+            for i = 1 : 2
+                res(i) = this.verifyExprNorm(i);
             end
         end
         
         function res = verifyExprNorm(this, index)
             lp = this.linearProgram;
             expr = lp.exprs(index);
+            
+            if strcmp(expr.name, 'empty') || strcmp(expr.type, 'ie')
+                res = 0;
+                return;
+            end
             
             mid = expr.A * this.x - expr.b;
             res = norm(mid);

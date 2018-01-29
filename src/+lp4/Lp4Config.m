@@ -29,6 +29,9 @@ classdef Lp4Config
         DEFAULT_PARTITION_REPEAT_NUM = 1024;
         
         DEFAULT_EPS = 0.00001
+        
+        IS_SET_LINPROG_LOWERBOUND = false;
+        LINPROG_LOWERBOUND = -100000000000000;
     end
     
     methods (Static)

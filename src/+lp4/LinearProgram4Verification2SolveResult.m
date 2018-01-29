@@ -82,7 +82,7 @@ classdef LinearProgram4Verification2SolveResult
             lp = this.linearProgram;
             expr = lp.exprs(index);
             
-            if strcmp(expr.name, 'empty')
+            if strcmp(expr.name, 'empty') || strcmp(expr.type, 'ie')
                 res = 0;
                 return;
             end

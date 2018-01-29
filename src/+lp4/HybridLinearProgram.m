@@ -363,6 +363,11 @@ classdef HybridLinearProgram
             for i = 1 : this.guardNum
                 guard = this.guards(i);
                 
+                % for an empty constrain
+                if isempty(guard.exprs)
+                    continue;
+                end
+                
                 exprNum = this.nextExprNumIndex();
                 
                 expr = Constraint();
@@ -597,21 +602,20 @@ classdef HybridLinearProgram
             expr.type = 'eq';
             expr.polyexpr = [];
             
-            phyIStart = this.decvarsIndexes.phyStarts(i) - 1;
-            phyILength = this.decvarsIndexes.phyEnds(i) - phyIStart;
+            actualPhyIStart = this.decvarsIndexes.phyStarts(i) - 1;
+            actualPhyILength = this.decvarsIndexes.phyEnds(i) - actualPhyIStart;
             
-            if phyILength > length(phyI)
+            if actualPhyILength < length(phyI)
                 error('Wrong phy length.');
             end
             
-            expr.A = zeros(phyILength, length(this.decvars));
-            for k = 1 : phyILength
-                expr.A(k, phyIStart + k) = 1;
+            expr.A = zeros(actualPhyILength, length(this.decvars));
+            for k = 1 : actualPhyILength
+                expr.A(k, actualPhyIStart + k) = 1;
             end
-            expr.b = zeros(phyILength, 1);
-            for k = 1 : phyILength
-                expr.b(k, 1) = phyI(k, 1);
-            end
+            expr.b = zeros(actualPhyILength, 1);
+            lengthPhyI = length(phyI);
+            expr.b(1:lengthPhyI, 1) = phyI(1:lengthPhyI, 1);
             
             this.exprs(exprNum) = expr;
         end

@@ -1,37 +1,11 @@
-classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
+classdef HybridLinearProgramVerificationWithGivenLambdaAndRe < lp4.HybridLinearProgramVerificationBase
     
     properties
-        indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
         degree % 问题1中的带求多项式函数φ的次数，类型为正整数
-        
-        stateNum
-        thetaStateIndex
-        
-        guardNum
-        
-        phys % 不同状态下的 phy
         phyPolynomials
-        
-        eps
         
         lambdas
         res
-        
-        fs % 在不同状态下的 f
-        
-        theta
-        psys
-        zetas
-        guards
-        
-        decvars % 问题1中的决策变量，包括 不同状态下Phy的决策变量, Cαβ, Cγδ, Cu,v
-        decvarsIndexes
-        
-        exprs
-        
-        linprogF
-
-        isAttachRou
     end % properties
     
     methods
@@ -66,13 +40,13 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
         end
         
         function this = init(this, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree,...
-                             lambdas, res)
+                lambdas, res)
             
             this.fs = fs;
             this.eps = eps;
             
             this.thetaStateIndex = thetaStateIndex;
-           
+            
             this.lambdas = lambdas;
             this.res = res;
             
@@ -91,14 +65,6 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
             this = this.setDecVarsConstraint();
             
             this = this.setLinprogF();
-        end
-        
-        function this = set.fs(this, fs)
-            this.fs = fs;
-        end
-        
-        function this = set.eps(this, eps)
-            this.eps = eps;
         end
         
         function [this, startIndex, endIndex] = addDecisionVars(this, decvars)
@@ -136,6 +102,10 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
                 this.phyPolynomials = [this.phyPolynomials, SymbolicPolynomial(this.indvars, degree, currentStateP, currentStatePhy)];
             end
             
+            if this.isAttachRou
+                this.rouVar = sym('rou');
+                [this, this.decvarsIndexes.rouIndex, ~] = this.addDecisionVars(this.rouVar);
+            end
         end
         
         function this = setThetaConstraint(this, theta)
@@ -222,7 +192,7 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
                 expr.polyexpr = constraint2;
                 
                 this.exprs(exprNum) = expr;
-            end  
+            end
         end
         
         function this = setGuardConstraint(this, guards)
@@ -304,9 +274,9 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
                 de = computeDegree(constraintRe, this.indvars) + Lp4Config.C_DEGREE_INC;
                 
                 % if re is a constant, ignore it
-                if de == 0
-                    continue;
-                end
+%                 if de == 0
+%                     continue;
+%                 end
                 
                 name = strcat('c_re', num2str(i), '_');
                 c_re = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
@@ -350,8 +320,8 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
                 name = strcat('c_u_v', num2str(zetaIndex));
                 c_u_v = sym(name,[1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
                 [constraintDecvars, expression] = constraintExpression(de, zeta.exprs, c_u_v);
-                 [this, this.decvarsIndexes.cZetaStarts(zetaIndex), this.decvarsIndexes.cZetaEnds(zetaIndex)] = this.addDecisionVars(constraintDecvars);
-               
+                [this, this.decvarsIndexes.cZetaStarts(zetaIndex), this.decvarsIndexes.cZetaEnds(zetaIndex)] = this.addDecisionVars(constraintDecvars);
+                
                 constraint3 = constraint3 + expression;
                 
                 constraint3 = expand(constraint3);
@@ -385,7 +355,7 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
             cStart = this.decvarsIndexes.cThetaStart - 1;  % Note: `cStart + 1` is the actual start index
             cLength = length(this.decvars) - cStart;
             expr.A = zeros(cLength, length(this.decvars));
-
+            
             for k = 1 : cLength
                 expr.A(k, cStart + k) = -1;
             end
@@ -393,63 +363,14 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
                 rouIndex = this.decvarsIndexes.rouIndex;
                 for k = 1 : cLength
                     % - rou
-                    expr.A(k, rouIndex) = -1; 
+                    expr.A(k, rouIndex) = -1;
                 end
             end
             expr.b = zeros(cLength, 1);
             
             this.exprs(exprNum) = expr;
         end % function setDecVarsConstraint
-
-        function this = setLinprogF(this)
-            % init f with all zeros
-            this.linprogF = zeros(1, length(this.decvars));
-            
-            if this.isAttachRou
-                this.linprogF(this.decvarsIndexes.rouIndex) = 1;
-            end
-        end
-        
-        function [this, solveRes, resNorms] = solve(this)
-            Aeq = [];
-            beq = [];
-            Aie = [];
-            bie = [];
-            
-            for k = 1 : 1 : length(this.exprs)
-                if this.exprs(k).isEmptyConstraint()
-                    continue;
-                end
-                
-                if strcmp(this.exprs(k).type, 'eq')
-                    Aeq = [Aeq; this.exprs(k).A];
-                    beq = [beq; this.exprs(k).b];
-                else
-                    Aie = [Aie; this.exprs(k).A];
-                    bie = [bie; this.exprs(k).b];
-                end
-            end
-            
-            tic;
-            [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq);
-            time = toc;
-            
-            import lp4.HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
-            solveRes = HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes(this, x, fval, flag, time);
-            
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
-                solveRes.printSolution();
-            end
-            
-            if solveRes.hasSolution()
-                resNorms = solveRes.computeAllExprsNorms();
-            else
-                resNorms = [];
-            end
-            
-        end % function solve
-        
+          
         function res = getPhyCoefficientStart(this, i)
             res = this.decvarsIndexes.phyStarts(i);
         end
@@ -461,17 +382,29 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe
         function res = nextExprNumIndex(this)
             res = length(this.exprs) + 1;
         end
-      
+        
+        function solveRes = createSolveRes(this, x, fval, flag, time)
+            solveRes = lp4.HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes(this, x, fval, flag, time);
+        end
+        
     end % methods
     
     methods (Static)
         
-        function hlp = create(indvarsArg, stateNum,...
-                fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree,...
+        function hlp = create(indvarsArg, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree,...
                 lambdas, res)
             
             import lp4.HybridLinearProgramVerificationWithGivenLambdaAndRe
             hlp = HybridLinearProgramVerificationWithGivenLambdaAndRe(indvarsArg, stateNum, size(guards, 2));
+            hlp = hlp.init(fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, lambdas, res);
+        end
+        
+        function hlp = createWithRou(indvarsArg, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree,...
+                lambdas, res)
+            
+            import lp4.HybridLinearProgramVerificationWithGivenLambdaAndRe
+            hlp = HybridLinearProgramVerificationWithGivenLambdaAndRe(indvarsArg, stateNum, size(guards, 2));
+            hlp.isAttachRou = true;
             hlp = hlp.init(fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, lambdas, res);
         end
         
