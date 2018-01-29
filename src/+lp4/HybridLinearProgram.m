@@ -6,7 +6,6 @@ classdef HybridLinearProgram
         
         stateNum
         thetaStateIndex
-        zetaStateIndex
         
         guardNum
         
@@ -15,18 +14,12 @@ classdef HybridLinearProgram
         
         eps
         
-        decvars % 问题1中的决策变量，包括 不同状态下Phy的决策变量, rou, lambda, re, wLambda, wRe, Cαβ, Cγδ, Cu,v
-        decvarsIndexes
-        
-        exprs
-        
         fs % 在不同状态下的 f
-        
-        guards
         
         theta
         psys
-        zeta
+        zetas
+        guards
         
         pLambdaDegree
         pLambdaPolynomials % 修改后的问题1中的λ
@@ -35,10 +28,14 @@ classdef HybridLinearProgram
         pRePolynomials
         
         wLambdas
-        
         wRes
         
         rouVar
+        
+        decvars % 问题1中的决策变量，包括 不同状态下Phy的决策变量, rou, lambda, re, wLambda, wRe, Cαβ, Cγδ, Cu,v
+        decvarsIndexes
+        
+        exprs % 保存所有约束对应的表达式
         
         pPartitions
         pLambdaPartitions
@@ -82,13 +79,12 @@ classdef HybridLinearProgram
             this.decvarsIndexes = HybridLinearProgramDecVarIndexes();
         end
         
-        function this = initWithoutRanges(this, fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards, degree, pLambdaDegree, pReDegree)
+        function this = initWithoutRanges(this, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree)
             
             this.fs = fs;
             this.eps = eps;
             
             this.thetaStateIndex = thetaStateIndex;
-            this.zetaStateIndex = zetaStateIndex;
             
             % Note: we needs guards when genereting dec vars
             this.guards = guards;
@@ -98,7 +94,7 @@ classdef HybridLinearProgram
             this = this.setPsyConstraint(psys);
             this = this.setGuardConstraint(guards);
             this = this.setReConstraint();
-            this = this.setZetaConstraint(zeta);
+            this = this.setZetaConstraint(zetas);
             
             this = this.generateEqsForSafetyConstraints();
             
@@ -116,14 +112,12 @@ classdef HybridLinearProgram
             this = this.setWConstraint();
         end
         
-        function this = init(this, fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards, degree, pLambdaDegree, pReDegree,...
+        function this = init(this, fs, eps, thetaStateIndex, theta, psys, zeta, guards, degree, pLambdaDegree, pReDegree,...
                 phyRange, pLambdaRange, pReRange)
             
-            this = this.initWithoutRanges(fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards, degree, pLambdaDegree, pReDegree);
+            this = this.initWithoutRanges(fs, eps, thetaStateIndex, theta, psys, zeta, guards, degree, pLambdaDegree, pReDegree);
             this = this.setRangeAndWConstraint(phyRange, pLambdaRange, pReRange);
         end
-        
-
         
         function this = set.fs(this, fs)
             this.fs = fs;
@@ -147,7 +141,7 @@ classdef HybridLinearProgram
                 this.decvars = [this.decvars reshape(decvars, 1, size(decvars, 1) * size(decvars, 2))];
                 endIndex = size(this.decvars, 2);
             else
-                error("Wrong decvars.");
+                error('Wrong decvars.');
             end
         end
         
@@ -247,7 +241,7 @@ classdef HybridLinearProgram
             import lp4.Lp4Config
             de = computeDegree(constraint1, this.indvars) + Lp4Config.C_DEGREE_INC;
             
-            c_alpha_beta = sym('c_alpha_beta', [1,10000]); % pre-defined varibales, only a few of them are the actual variables
+            c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
             [this, this.decvarsIndexes.cThetaStart, this.decvarsIndexes.cThetaEnd] = this.addDecisionVars(constraintDecvars);
             
@@ -263,20 +257,17 @@ classdef HybridLinearProgram
         
         function this = setPsyConstraint(this, psys)
             if this.stateNum ~= size(psys, 1)
-                error("Psys are of wrong number.")
+                error('Psys are of wrong number.')
             end
             
             this.psys = psys;
             
             for i = 1 : this.stateNum
-                psy = psys(1,:);
+                psy = psys(i, :);
                 exprNum = this.nextExprNumIndex();
                 
                 % for an empty constrain
                 if isempty(psy)
-                    expr = Constraint.createEmptyConstraint();
-                    expr.num = exprNum;
-                    this.exprs(exprNum) = expr;
                     continue;
                 end
                 
@@ -299,7 +290,7 @@ classdef HybridLinearProgram
                 de = computeDegree(constraint2, this.indvars) + Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_gama_delta', num2str(i), '_');
-                c_gama_delta = sym(name, [1, 1000 * 1000]);
+                c_gama_delta = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
                 [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
                 [this, this.decvarsIndexes.cPsyStarts(i), this.decvarsIndexes.cPsyEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
@@ -309,12 +300,15 @@ classdef HybridLinearProgram
                 expr.polyexpr = constraint2;
                 
                 this.exprs(exprNum) = expr;
-            end  
+            end
         end
         
         function this = setGuardConstraint(this, guards)
+            if length(this.guards) ~= this.guardNum
+                error('Wrong guard number.')
+            end
+            
             this.guards = guards;
-            this.guardNum = length(guards);
             
             for i = 1 : this.guardNum
                 guard = this.guards(i);
@@ -325,9 +319,6 @@ classdef HybridLinearProgram
                 
                 % for an empty constrain
                 if isempty(guard.exprs)
-                    expr = Constraint.createEmptyConstraint();
-                    expr.num = exprNum;
-                    this.exprs(exprNum) = expr;
                     continue;
                 end
                 
@@ -354,7 +345,7 @@ classdef HybridLinearProgram
                 de = computeDegree(constraintGuard, this.indvars) + Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_guard', num2str(i), '_');
-                c_guard = sym(name, [1, 1000 * 1000]);
+                c_guard = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
                 [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_guard);
                 [this, this.decvarsIndexes.cGuardStarts(i), this.decvarsIndexes.cGuardEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
@@ -387,7 +378,7 @@ classdef HybridLinearProgram
                 de = computeDegree(constraintRe, this.indvars) + Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_re', num2str(i), '_');
-                c_re = sym(name, [1, 1000 * 1000]);
+                c_re = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
                 [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_re);
                 [this, this.decvarsIndexes.cReStarts(i), this.decvarsIndexes.cReEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
@@ -400,41 +391,43 @@ classdef HybridLinearProgram
             end
         end
         
-        function this = setZetaConstraint(this, zeta)
-            this.zeta = zeta;
+        function this = setZetaConstraint(this, zetas)
+            this.zetas = zetas;
             
-            exprNum = this.nextExprNumIndex();
-            
-            % for an empty constrain
-            if isempty(zeta)
-                expr = Constraint.createEmptyConstraint();
+            for zetaIndex = 1 : length(this.zetas)
+                zeta = this.zetas(zetaIndex);
+                
+                % for an empty constrain
+                if isempty(zeta.exprs)
+                    return;
+                end
+                
+                exprNum = this.nextExprNumIndex();
+                
+                expr = Constraint();
                 expr.num = exprNum;
+                expr.name = 'zeta';
+                expr.type = 'eq';
+                expr.A = [];
+                expr.b = [];
+                
+                zetaStatePhy = this.phys(zeta.stateIndex);
+                constraint3 = zetaStatePhy + this.eps(2); % different from lp2
+                import lp4.Lp4Config
+                de = computeDegree(constraint3, this.indvars) + Lp4Config.C_DEGREE_INC;
+                
+                name = strcat('c_u_v', num2str(zetaIndex));
+                c_u_v = sym(name,[1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
+                [constraintDecvars, expression] = constraintExpression(de, zeta.exprs, c_u_v);
+                [this, this.decvarsIndexes.cZetaStarts(zetaIndex), this.decvarsIndexes.cZetaEnds(zetaIndex)] = this.addDecisionVars(constraintDecvars);
+                
+                constraint3 = constraint3 + expression;
+                
+                constraint3 = expand(constraint3);
+                expr.polyexpr = constraint3;
+                
                 this.exprs(exprNum) = expr;
-                return;
             end
-            
-            expr = Constraint();
-            expr.num = exprNum;
-            expr.name = 'zeta';
-            expr.type = 'eq';
-            expr.A = [];
-            expr.b = [];
-            
-            zetaStatePhy = this.phys(this.zetaStateIndex);
-            constraint3 = zetaStatePhy + this.eps(2); % different from lp2
-            import lp4.Lp4Config
-            de = computeDegree(constraint3, this.indvars) + Lp4Config.C_DEGREE_INC;
-            
-            c_u_v = sym('c_u_v',[1,10000]);
-            [constraintDecvars, expression] = constraintExpression(de, zeta, c_u_v);
-            [this, this.decvarsIndexes.cZetaStart, this.decvarsIndexes.cZetaEnd] = this.addDecisionVars(constraintDecvars);
-            
-            constraint3 = constraint3 + expression;
-            
-            constraint3 = expand(constraint3);
-            expr.polyexpr = constraint3;
-            
-            this.exprs(exprNum) = expr;
         end
         
         function this = generateEqsForSafetyConstraints(this)
@@ -458,7 +451,7 @@ classdef HybridLinearProgram
             expr.type = 'ie';
             expr.polyexpr = [];
             
-            cStart = this.decvarsIndexes.cThetaStart;
+            cStart = this.decvarsIndexes.cThetaStart - 1; % Note: `cStart + 1` is the actual start index
             cLength = length(this.decvars) - cStart;
             expr.A = zeros(cLength, length(this.decvars));
             rouIndex = this.getRouIndex();
@@ -467,18 +460,21 @@ classdef HybridLinearProgram
                 % - rou
                 expr.A(k, rouIndex) = -1;
             end
-            bc = repmat(this.rouInc, cLength, 1);
-            expr.b = bc;
+            expr.b = repmat(this.rouInc, cLength, 1);
             
             this.exprs(exprNum) = expr;
         end % function setDecVarsConstraint
         
         function this = setWConstraint(this)
+            
             lastExpr = this.exprs(length(this.exprs));
-            if (strcmp(lastExpr.name, 'wConstraints'))
+            secondLastExpr = this.exprs(length(this.exprs) - 1);
+            if strcmp(lastExpr.name, 'wConstraints')
                 % if the last expr is for w, renew this expr
-                exprNum = length(this.exprs);
-            else 
+                exprNum = lastExpr.exprNum;
+            elseif strcmp(secondLastExpr.name, 'wConstraints')
+                exprNum = secondLastExpr.exprNum;
+            else
                 exprNum = this.nextExprNumIndex();
             end
             
@@ -592,6 +588,34 @@ classdef HybridLinearProgram
             this.exprs(exprNum) = expr;
         end
         
+        function this = setPhyExpression(this, i, phyI)
+            exprNum = this.nextExprNumIndex();
+            
+            expr = Constraint();
+            expr.num = exprNum;
+            expr.name = strcat('phy', num2str(i));
+            expr.type = 'eq';
+            expr.polyexpr = [];
+            
+            phyIStart = this.decvarsIndexes.phyStarts(i) - 1;
+            phyILength = this.decvarsIndexes.phyEnds(i) - phyIStart;
+            
+            if phyILength > length(phyI)
+                error('Wrong phy length.');
+            end
+            
+            expr.A = zeros(phyILength, length(this.decvars));
+            for k = 1 : phyILength
+                expr.A(k, phyIStart + k) = 1;
+            end
+            expr.b = zeros(phyILength, 1);
+            for k = 1 : phyILength
+                expr.b(k, 1) = phyI(k, 1);
+            end
+            
+            this.exprs(exprNum) = expr;
+        end
+        
         function this = setLinprogF(this)
             % init f with all zeros
             this.linprogF = zeros(1, length(this.decvars));
@@ -608,17 +632,17 @@ classdef HybridLinearProgram
             Aie = [];
             bie = [];
             
-            for k = 1 : 1 : length(this.exprs)
-                if this.exprs(k).isEmptyConstraint()
+            for expr = this.exprs
+                if expr.isEmptyConstraint()
                     continue;
                 end
                 
-                if strcmp(this.exprs(k).type, 'eq')
-                    Aeq = [Aeq; this.exprs(k).A];
-                    beq = [beq; this.exprs(k).b];
+                if strcmp(expr.type, 'eq')
+                    Aeq = [Aeq; expr.A];
+                    beq = [beq; expr.b];
                 else
-                    Aie = [Aie; this.exprs(k).A];
-                    bie = [bie; this.exprs(k).b];
+                    Aie = [Aie; expr.A];
+                    bie = [bie; expr.b];
                 end
             end
             
@@ -636,46 +660,27 @@ classdef HybridLinearProgram
             
         end % function solve
         
-        % FIXME `verifyWithLambda`
-        
         % `verify` is forward to `verifyWithLambda`
         function [lpVer, solveResVer, resNorms] = verify(lp, solveRes, phyRangeInVerify)
-            [lpVer, solveResVer, resNorms] = verifyWithLambda(lp, solveRes, phyRangeInVerify);
+            [lpVer, solveResVer, resNorms] = verifyWithLambdaAndRe(lp, solveRes, phyRangeInVerify);
         end
         
-        function [lpVer, solveResVer, resNorms] = verifyWithLambda(lp, solveRes, phyRangeInVerify)
-            
+        function [lpVer, solveResVer, resNorms] = verifyWithLambdaAndRe(lp, solveRes)
             if ~(solveRes.hasSolution())
+                lpVer = 0;
+                solveResVer = 0;
+                resNorms = [];
+                
                 disp('Not find feasible solution to verify.');
                 return;
             end
             
             % verify
             
-            import lp4.LinearProgram4Verification2
-            lpVer = LinearProgram4Verification2(lp.indvars);
-            
-            lpVer.f = lp.f;
-            lpVer.eps = lp.eps;
-            
-            % set the degree of phy
-            import lp4.Lp4Config
-            lpVer = lpVer.setDegreeAndInit(lp.degree + Lp4Config.VERIFICATION_PHY_DEGREE_INC);
-            
-            % set lambda expression
-            lpVer.lambda = solveRes.getPLmabdaExpression();
-            
-            lpVer = lpVer.setThetaConstraint(lp.theta);
-            lpVer = lpVer.setPsyConstraint(lp.psy);
-            lpVer = lpVer.setZetaConstraint(lp.zeta);
-            lpVer = lpVer.generateEqsForConstraint1To3();
-            
-            if isa(phyRangeInVerify, 'lp4util.Partition')
-                lpVer.pPartitions = repmat(phyRangeInVerify, 1024, 1);
-                lpVer = lpVer.setPhyConstraint();
-            end
-            
-            lpVer = lpVer.setDecVarsConstraint();
+            import lp4.HybridLinearProgramVerificationWithGivenLambdaAndRe
+            lpVer = HybridLinearProgramVerificationWithGivenLambdaAndRe.create(lp.indvars, lp.stateNum,...
+                lp.fs, lp.eps, lp.thetaStateIndex, lp.theta, lp.psys, lp.zetas, lp.guards, lp.degree,...
+                solveRes.getPLmabdaExpressions(), solveRes.getPReExpressions());
             
             % solve the lp problem
             [lpVer, solveResVer, resNorms] = lpVer.solve();
@@ -684,7 +689,8 @@ classdef HybridLinearProgram
                 disp('Verify feasible solution failed.');
             else
                 disp('Verify feasible solution succeed, norms ;');
-                disp(resNorms);
+                % FIXME `resNorms` is empty
+                % disp(resNorms);
             end
             
             import lp4.Lp4Config
@@ -692,8 +698,10 @@ classdef HybridLinearProgram
         end
         
         function [lpVer, solveResVer, resNorms] = verifyWithPhy(lp, solveRes)
-            
             if ~(solveRes.hasSolution())
+                lpVer = 0;
+                solveResVer = 0;
+                resNorms = [];
                 disp('Not find feasible solution to verify.');
                 return;
             end
@@ -702,17 +710,16 @@ classdef HybridLinearProgram
             
             import lp4.HybridLinearProgramVerificationWithGivenPhy
             lpVer = HybridLinearProgramVerificationWithGivenPhy.create(lp.indvars, lp.stateNum,...
-                lp.fs, lp.eps, lp.thetaStateIndex, lp.zetaStateIndex, lp.theta, lp.psys, lp.zeta, lp.guards, lp.pLambdaDegree, lp.pReDegree,...
+                lp.fs, lp.eps, lp.thetaStateIndex, lp.theta, lp.psys, lp.zetas, lp.guards, lp.pLambdaDegree, lp.pReDegree,...
                 solveRes.getPhyExpressions());
             
-            % FIXME `resNorms` is empty
             [lpVer, solveResVer, resNorms] = lpVer.solve();
             
             if ~(solveResVer.hasSolution())
                 disp('Verify feasible solution failed.');
             else
-                disp('Verify feasible solution succeed, norms ;');
-                % FIXME
+                disp('Verify feasible solution succeed, norms :');
+                % FIXME `resNorms` is empty
                 % disp(resNorms);
             end
             
@@ -781,18 +788,18 @@ classdef HybridLinearProgram
     methods (Static)
         
         function hlp = create(indvarsArg, stateNum,...
-                fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta,guards, degree, pLambdaDegree, pReDegree,...
+                fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree,...
                 phyRange, pLambdaRange, pReRange)
             import lp4.HybridLinearProgram
             hlp = HybridLinearProgram(indvarsArg, stateNum, size(guards, 2));
-            hlp = hlp.init(fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta,guards, degree, pLambdaDegree, pReDegree, phyRange, pLambdaRange, pReRange);
+            hlp = hlp.init(fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree, phyRange, pLambdaRange, pReRange);
         end
         
         function hlp = createWithoutRanges(indvarsArg, stateNum,...
-                fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards, degree, pLambdaDegree, pReDegree)
+                fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree)
             import lp4.HybridLinearProgram
             hlp = HybridLinearProgram(indvarsArg, stateNum, size(guards, 2));
-            hlp = hlp.initWithoutRanges(fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards, degree, pLambdaDegree, pReDegree);
+            hlp = hlp.initWithoutRanges(fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree);
         end
         
         function [wSymbolicVars, wExpression] = createWExpression(name, pPolynomial, pLambdaPolynomial)

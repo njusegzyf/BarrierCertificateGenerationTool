@@ -17,8 +17,6 @@ classdef LinearProgram4Verification2
         
         phyPolynomial
         
-        solution
-        
         c1Length
         c2Length
         c3Length

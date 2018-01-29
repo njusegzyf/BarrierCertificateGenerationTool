@@ -1,5 +1,5 @@
-classdef HybridLinearProgramVerificationWithGivenPhySolveRes
-    %HybridLinearProgramVerificationWithGivenPhySolveRes Represents a solve result of a HybridLinearProgramVerificationWithGivenPhy.
+classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
+    %HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes Represents a solve result of a HybridLinearProgramVerificationWithGivenLambdaAndRe.
     
     properties
         linearProgram
@@ -17,8 +17,8 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
     end
     
     methods
-        function this = HybridLinearProgramVerificationWithGivenPhySolveRes(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg)
-            %HybridLinearProgramVerificationWithGivenPhySolveRes 构造此类的实例
+        function this = HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg)
+            %HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes 构造此类的实例
             this.linearProgram = linearProgramArg;
             this.x = xArg;
             this.fval = fvalArg;
@@ -41,26 +41,56 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
             res = reshapeToVector(this.getPhyCoefficient(i)) * monomials(lp.indvars, 0 : lp.degree);
         end
         
-        function res = getPLmabdaCoefficient(this, i)
-            res = this.x(this.linearProgram.getPLambdaCoefficientStart(i) : this.linearProgram.getPLambdaCoefficientEnd(i));
-            % res = reshape(res, 1, size(res, 1));
+        function res = getPhyExpressions(this)
+            res(this.linearProgram.stateNum) = this.getPhyExpression(this.linearProgram.stateNum);
+            for i = 1 : this.linearProgram.stateNum - 1
+                res(i) = this.getPhyExpression(i);
+            end
         end
         
-        function res = getPLmabdaExpression(this, i)
+        function res = getCGuardCoefficient(this, i)
+           decvarIndexes = this.linearProgram.decvarsIndexes;
+           res = this.x(decvarIndexes.cGuardStarts(i):  decvarIndexes.cGuardEnds(i));
+        end
+        
+        function guardExpr = getGuardExpr(this, i)
             lp = this.linearProgram;
-            import lp4util.reshapeToVector
-            res = reshapeToVector(this.getPLmabdaCoefficient(i)) * monomials(lp.indvars, 0 : lp.pLambdaDegree);
+            guardIndex = 1 + lp.stateNum + i;
+            guardExpr = lp.exprs(guardIndex).polyexpr;
+            
+            for i = 1 : length(lp.decvars)
+                decvar = lp.decvars(i);
+                decvarValue = this.x(i);
+                guardExpr = subs(guardExpr, decvar, decvarValue);
+            end
         end
         
-        function res = getPReCoefficient(this, i)
-            res = this.x(this.linearProgram.getPReCoefficientStart(i) : this.linearProgram.getPReCoefficientEnd(i));
-            % res = reshape(res, 1, size(res, 1));
-        end
-        
-        function res = getPReExpression(this, i)
+        function psyExpr = getPsyExpr(this, i)
             lp = this.linearProgram;
-            import lp4util.reshapeToVector
-            res = reshapeToVector(this.getPReCoefficient(i)) * monomials(lp.indvars, 0 : lp.pReDegree);
+            psyIndex = 1 + i;
+            psyExpr = lp.exprs(psyIndex).polyexpr;
+            
+            for i = 1 : length(lp.decvars)
+                decvar = lp.decvars(i);
+                decvarValue = this.x(i);
+                psyExpr = subs(psyExpr, decvar, decvarValue);
+            end
+        end
+        
+        function res = computeExprNorm(this, index)
+            lp = this.linearProgram;
+            expr = lp.exprs(index);
+            
+            mid = expr.A * this.x - expr.b;
+            res = norm(mid);
+        end
+        
+        function res = computeAllExprsNorms(this)
+            exprCount = length(this.linearProgram.exprs);
+            res(exprCount) = this.computeExprNorm(exprCount);
+            for i = 1 : exprCount - 1
+                res(i) = this.computeExprNorm(i);
+            end
         end
         
         function printSolution(this)
@@ -70,8 +100,7 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
             % diaplay code from lp3
             disp('--------------------------------------------------------------');
             disp('The parameter setting:');
-            disp(['; lambda degree: ', num2str(lp.pLambdaDegree),...
-                '; re degree: ', num2str(lp.pReDegree),...
+            disp(['degree: ', num2str(lp.degree),...
                 '; eps1: ',num2str(lp.eps(1)),...
                 '; eps2: ',num2str(lp.eps(2))]);
             
@@ -80,19 +109,10 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
             if (flag == 1)
                 disp('--------------------------------------------------------------');
                 for i = 1 : this.linearProgram.stateNum
-                    disp(['The coefficients of lambda', num2str(i), ' is:']);
-                    disp(reshapeToVector(this.getPLmabdaCoefficient(i)));
-                    disp(['The function lambda', num2str(i), ' is:']);
-                    disp(reshapeToVector(this.getPLmabdaExpression(i)));
-                    disp('');
-                end
-                
-                disp('--------------------------------------------------------------');
-                for i = 1 : this.linearProgram.guardNum
-                    disp(['The coefficients of re', num2str(i), ' is:']);
-                    disp(reshapeToVector(this.getPReCoefficient(i)));
-                    disp(['The function re', num2str(i), ' is:']);
-                    disp(reshapeToVector(this.getPReExpression(i)));
+                    disp(['The coefficients of function phy', num2str(i), ' is:']);
+                    disp(reshapeToVector(this.getPhyCoefficient(i)));
+                    disp(['The function phy', num2str(i), ' is:']);
+                    disp(reshapeToVector(this.getPhyExpression(i)));
                     disp('');
                 end
                 
@@ -106,7 +126,7 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
                 disp('--------------------------------------------------------------');
             elseif flag < 0
                 disp('--------------------------------------------------------------');
-                disp('The problem maybe have no solution.');
+                disp(['The problem with degree ', num2str(lp.degree),' maybe have no solution.']);
                 disp('--------------------------------------------------------------');
             else % flag > 1
             end
@@ -116,3 +136,4 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
     methods (Static = true)
     end
 end
+

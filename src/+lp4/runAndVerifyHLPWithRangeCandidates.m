@@ -1,5 +1,5 @@
 function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyHLPWithRangeCandidates(...
-    vars, stateNum, fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards,...
+    vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards,...
     degree, pLambdaDegree, pReDegree,...
     phyRanges, pLambdaRanges, pReRanges)
 
@@ -15,7 +15,7 @@ isVerified = false;
 
 % Note: In this version, we reuse a `lp4.HybridLinearProgram` for different ranges.
 import lp4.HybridLinearProgram
-lp = HybridLinearProgram.createWithoutRanges(vars, stateNum, fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards,...
+lp = HybridLinearProgram.createWithoutRanges(vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards,...
     degree, pLambdaDegree, pReDegree);
 
 for i = 1 : rangeCandicatesCount
@@ -23,14 +23,16 @@ for i = 1 : rangeCandicatesCount
     pLambdaRange = pLambdaRanges(i);
     pReRange = pReRanges(i);
     
-    import lp4.runAndVerifyHLPWithGivenPhy
-    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyHLPWithGivenPhy(...
+    import lp4.runAndVerifyHLP
+    [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerifyHLP(...
         lp, phyRange, pLambdaRange, pReRange);
     
     % FIXME
     % import lp4.Lp4Config
     % if Lp4Config.IS_VERIFY_WITH_PHY
+    % ...
     % else
+    % ...
     % end
     
     if isVerified

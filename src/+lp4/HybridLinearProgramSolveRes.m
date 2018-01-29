@@ -63,6 +63,13 @@ classdef HybridLinearProgramSolveRes
             res = reshapeToVector(this.getPLmabdaCoefficient(i)) * monomials(lp.indvars, 0 : lp.pLambdaDegree);
         end
         
+        function res = getPLmabdaExpressions(this)
+            res(this.linearProgram.stateNum) = this.getPLmabdaExpression(this.linearProgram.stateNum);
+            for i = 1 : this.linearProgram.stateNum - 1
+                res(i) = this.getPLmabdaExpression(i);
+            end
+        end
+        
         function res = getPReCoefficient(this, i)
             res = this.x(this.linearProgram.getPReCoefficientStart(i) : this.linearProgram.getPReCoefficientEnd(i));
             % res = reshape(res, 1, size(res, 1));
@@ -72,6 +79,13 @@ classdef HybridLinearProgramSolveRes
             lp = this.linearProgram;
             import lp4util.reshapeToVector
             res = reshapeToVector(this.getPReCoefficient(i)) * monomials(lp.indvars, 0 : lp.pReDegree);
+        end
+        
+        function res = getPReExpressions(this)
+            res(this.linearProgram.guardNum) = this.getPReExpression(this.linearProgram.guardNum);
+            for i = 1 : this.linearProgram.guardNum - 1
+                res(i) = this.getPReExpression(i);
+            end
         end
         
         function res = getWLambda(this, i)

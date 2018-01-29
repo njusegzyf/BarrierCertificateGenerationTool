@@ -31,8 +31,8 @@ classdef HybridLinearProgramDecVarIndexes
         cReStarts
         cReEnds
         
-        cZetaStart
-        cZetaEnd
+        cZetaStarts
+        cZetaEnds
         
     end
     
@@ -61,6 +61,9 @@ classdef HybridLinearProgramDecVarIndexes
             
             this.cReStarts = [];
             this.cReEnds = [];
+            
+            this.cZetaStarts = [];
+            this.cZetaEnds = [];
         end
         
     end

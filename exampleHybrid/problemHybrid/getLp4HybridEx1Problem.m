@@ -1,8 +1,9 @@
-function [vars, stateNum, fs, eps, thetaStateIndex, zetaStateIndex, g_theta, g_psys, g_zeta, g_guards] = getLp4HybridEx1Problem()
+function [vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx1Problem()
 
 % independent variables
-syms t T;
-vars = [t T];
+syms T t;
+vars = [T, t];
+% vars = [t, T]; % wrong
 
 stateNum = 3;
 
@@ -14,15 +15,15 @@ fs = [f1, f2, f3];
 % Note: use `fs(:, 1)` to get f1
 
 import lp4.Lp4Config
-eps = [Lp4Config.DEFAULT_EPS, Lp4Config.DEFAULT_EPS];
-
+% eps = [Lp4Config.DEFAULT_EPS, Lp4Config.DEFAULT_EPS];
+eps = [0.1, 0.1];
 
 
 % Constructing the theta constraint
 theta1 = t;
 theta2 = -t;
 theta3 = (T-5)/5;
-g_theta = [theta1, theta2, theta3];
+theta = [theta1, theta2, theta3];
 thetaStateIndex = 2;
 
 
@@ -40,7 +41,7 @@ psy31 = t;
 psy32 = T/100;
 g_psy3 = [psy31, psy32];
 
-g_psys = [g_psy1; g_psy2; g_psy3];
+psys = [g_psy1; g_psy2; g_psy3];
 
 
 
@@ -64,14 +65,14 @@ guard321=T/100;
 guard322=(t-0.5)/99.5;
 guard32 = Guard(3, 2, [guard321, guard322], [t], [0]);
 
-g_guards = [guard12, guard21, guard23, guard32];
+guards = [guard12, guard21, guard23, guard32];
 
 
 
 % Constructing the zeta constraint
+import lp4.UnsafeConstraint
 zeta31 = T/4.5;
 zeta32 = t/100;
-g_zeta = [zeta31, zeta32];
-zetaStateIndex = 3;
+zetas = [UnsafeConstraint(3, [zeta31, zeta32])];
 
 end

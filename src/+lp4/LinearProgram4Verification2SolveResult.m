@@ -72,9 +72,9 @@ classdef LinearProgram4Verification2SolveResult
         end
         
         function res = verifyNorms(this)
-            res = [];
-            for i = 1 : 3
-                res = [res, this.verifyExprNorm(i)];
+            res(3) = this.verifyExprNorm(3);
+            for i = 1 : 2
+                res(i) = this.verifyExprNorm(i);
             end
         end
         

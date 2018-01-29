@@ -17,8 +17,6 @@ classdef LinearProgram4Verification3
         
         lambdaPolynomial
         
-        solution
-        
         c1Length
         c2Length
         c3Length

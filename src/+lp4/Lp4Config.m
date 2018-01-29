@@ -24,12 +24,23 @@ classdef Lp4Config
         % 第二步验证时，如果求的是 lambda，则其次数限制 = 第一步求解时 lambda，的次数限制 + VERIFICATION_PHY_DEGREE_INC
         VERIFICATION_LAMBDA_DEGREE_INC = 0;
         
+        DEFAULT_DEC_VAR_SIZE = 1024;
+        
         DEFAULT_PARTITION_REPEAT_NUM = 1024;
         
-        DEFAULT_EPS = 0.0001
+        DEFAULT_EPS = 0.00001
     end
     
     methods (Static)
+
+        function res = processDegree(de)
+            if mod(de, 2) == 0
+                res = de;
+            else
+                res = de + 1;
+            end
+        end
+        
         function res = isDebug()
             import lp4.Lp4Config
             res = Lp4Config.IS_DEBUG;

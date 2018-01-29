@@ -421,8 +421,10 @@ classdef LinearProgram4_v3
         end
         
         function [lpVer, solveResVer, resNorms] = verifyWithLambda(lp, solveRes, phyRangeInVerify)
-            
             if ~(solveRes.hasSolution())
+                lpVer = 0;
+                solveResVer = 0;
+                resNorms = [];
                 disp('Not find feasible solution to verify.');
                 return;
             end
@@ -469,8 +471,10 @@ classdef LinearProgram4_v3
         end
         
         function [lpVer, solveResVer, resNorms] = verifyWithPhy(lp, solveRes)
-            
             if ~(solveRes.hasSolution())
+                lpVer = 0;
+                solveResVer = 0;
+                resNorms = [];
                 disp('Not find feasible solution to verify.');
                 return;
             end
