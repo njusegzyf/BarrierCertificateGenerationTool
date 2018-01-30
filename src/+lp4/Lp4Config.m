@@ -8,6 +8,9 @@ classdef Lp4Config
         % 如果为 true，验证时，除了尝试代入求出的 lambda 求 phy，还尝试代入求出的 phy 求 lambda
         IS_VERIFY_WITH_PHY = true;
         
+        % 根据 rou <= ROU_THRESHOLD 判断是否有解
+        ROU_THRESHOLD = 1e-7
+        
         % 检验解时，每个系数向量的 2 范数的阈值
         RES_NORM_THRESHOLD = 1e-5;
         
@@ -24,7 +27,7 @@ classdef Lp4Config
         % 第二步验证时，如果求的是 lambda，则其次数限制 = 第一步求解时 lambda，的次数限制 + VERIFICATION_PHY_DEGREE_INC
         VERIFICATION_LAMBDA_DEGREE_INC = 0;
         
-        DEFAULT_DEC_VAR_SIZE = 512;
+        DEFAULT_DEC_VAR_SIZE = 2048;
         
         DEFAULT_PARTITION_REPEAT_NUM = 1024;
         

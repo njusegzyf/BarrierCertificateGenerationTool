@@ -20,7 +20,7 @@ maxIterations = 20;
 
 randomSeed = 0;
 rng(randomSeed);
-randomSeeds = rand(2, randomStartCount);
+randomSeeds = randi(10000000, 2, randomStartCount, 'int32');
 
 lambdaStart = -1;
 lambdaEnd = 1;

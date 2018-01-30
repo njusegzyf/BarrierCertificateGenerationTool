@@ -24,9 +24,13 @@ classdef CvxSolveRes < lp4util.SolveResBase
     methods (Static)
         
         function exitflag = convertCvxStatusToExitflag(cvxStatus)
-            if strcmp(cvxStatus, 'Solved')
+            % @see http://cvxr.com/cvx/doc/solver.html
+            
+            if strcmp(cvxStatus, 'Solved') || strcmp(cvxStatus, 'Inaccurate/Solved')
                 exitflag = 1;
-            elseif strcmp(cvxStatus, 'Unbounded')
+            elseif strcmp(cvxStatus, 'Unbounded') || strcmp(cvxStatus, 'Infeasible')
+                exitflag = -1;
+            elseif strcmp(cvxStatus, 'Failed')
                 exitflag = -1;
             else
                 exitflag = -1;

@@ -140,13 +140,11 @@ classdef HybridLinearProgramVerificationBase
                 solveRes.printSolution();
             end
             
-            % FIXME
-            resNorms = [];
-%             if solveRes.hasSolution()
-%                 resNorms = solveRes.computeAllExprsNorms();
-%             else
-%                 resNorms = [];
-%             end
+            if solveRes.hasSolution()
+                resNorms = solveRes.computeAllExprsNorms();
+            else
+                resNorms = [];
+            end
              
         end % function solveWithCvx
         

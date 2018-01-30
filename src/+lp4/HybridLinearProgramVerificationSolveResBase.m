@@ -19,7 +19,7 @@ classdef HybridLinearProgramVerificationSolveResBase < lp4util.SolveResBase
         end
         
         function res = hasSolutionWithRou(this)
-            res = this.exitflag == 1 && this.getRou() <= 0;
+            res = this.exitflag == 1 && this.getRou() <= lp4.Lp4Config.ROU_THRESHOLD; % this.getRou() <= 0;
         end
         
         function res = getRou(this)
@@ -80,6 +80,102 @@ classdef HybridLinearProgramVerificationSolveResBase < lp4util.SolveResBase
             for i = 1 : exprCount - 1
                 res(i) = this.computeExprNorm(i);
             end
+        end
+        
+        function printSolution(this)
+            
+            if isa(this.linearProgram, 'lp4.HybridLinearProgramVerificationWithGivenLambdaAndRe')
+                
+                lp = this.linearProgram;
+                flag = this.exitflag;
+                
+                % diaplay code from lp3
+                disp('--------------------------------------------------------------');
+                disp('The parameter setting:');
+                disp(['degree: ', num2str(lp.degree),...
+                    '; eps1: ',num2str(lp.eps(1)),...
+                    '; eps2: ',num2str(lp.eps(2))]);
+                
+                import lp4util.reshapeToVector
+                
+                if (flag == 1)
+                    disp('--------------------------------------------------------------');
+                    for i = 1 : this.linearProgram.stateNum
+                        disp(['The coefficients of function phy', num2str(i), ' is:']);
+                        disp(reshapeToVector(this.getPhyCoefficient(i)));
+                        disp(['The function phy', num2str(i), ' is:']);
+                        disp(reshapeToVector(this.getPhyExpression(i)));
+                        disp('');
+                    end
+                    
+                    disp('--------------------------------------------------------------');
+                    disp('The computation time is:');
+                    disp(this.time);
+                    disp('--------------------------------------------------------------');
+                elseif (flag == 0)
+                    disp('--------------------------------------------------------------');
+                    disp('Maximum number of iterations reached.');
+                    disp('--------------------------------------------------------------');
+                elseif flag < 0
+                    disp('--------------------------------------------------------------');
+                    disp(['The problem with degree ', num2str(lp.degree),' maybe have no solution.']);
+                    disp('--------------------------------------------------------------');
+                else % flag > 1
+                end
+                
+            elseif isa(this.linearProgram, 'lp4.HybridLinearProgramVerificationWithGivenPhy')
+                
+                lp = this.linearProgram;
+                flag = this.exitflag;
+                
+                % diaplay code from lp3
+                disp('--------------------------------------------------------------');
+                disp('The parameter setting:');
+                disp(['; lambda degree: ', num2str(lp.pLambdaDegree),...
+                    '; re degree: ', num2str(lp.pReDegree),...
+                    '; eps1: ',num2str(lp.eps(1)),...
+                    '; eps2: ',num2str(lp.eps(2))]);
+                
+                import lp4util.reshapeToVector
+                
+                if (flag == 1)
+                    disp('--------------------------------------------------------------');
+                    for i = 1 : this.linearProgram.stateNum
+                        disp(['The coefficients of lambda', num2str(i), ' is:']);
+                        disp(reshapeToVector(this.getPLmabdaCoefficient(i)));
+                        disp(['The function lambda', num2str(i), ' is:']);
+                        disp(reshapeToVector(this.getPLmabdaExpression(i)));
+                        disp('');
+                    end
+                    
+                    disp('--------------------------------------------------------------');
+                    for i = 1 : this.linearProgram.guardNum
+                        disp(['The coefficients of re', num2str(i), ' is:']);
+                        disp(reshapeToVector(this.getPReCoefficient(i)));
+                        disp(['The function re', num2str(i), ' is:']);
+                        disp(reshapeToVector(this.getPReExpression(i)));
+                        disp('');
+                    end
+                    
+                    disp('--------------------------------------------------------------');
+                    disp('The computation time is:');
+                    disp(this.time);
+                    disp('--------------------------------------------------------------');
+                elseif (flag == 0)
+                    disp('--------------------------------------------------------------');
+                    disp('Maximum number of iterations reached.');
+                    disp('--------------------------------------------------------------');
+                elseif flag < 0
+                    disp('--------------------------------------------------------------');
+                    disp('The problem maybe have no solution.');
+                    disp('--------------------------------------------------------------');
+                else % flag > 1
+                end
+                
+            else
+                error('Unknown HLP type: %s', class(this.linearProgram));
+            end
+            
         end
         
     end

@@ -1,4 +1,4 @@
-function [lpVer, solveResVer, resNorms] = runLp4HybridEx44WithRounds()
+function [lpVer, solveResVer, resNorms] = runLp4HybridEx4WithRounds()
 
 clear;
 echo on;
@@ -7,10 +7,10 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx44Problem();
+[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx4Problem();
 
 % Set the degree
-degree = 2;
+degree = 1;
 pLambdaDegree = 1;
 pReDegree = 1;
 
@@ -44,8 +44,9 @@ for i = randomStartBeginIndex : randomStartCount
         if solveResVer.hasSolutionWithRou()
             return;
         end
-    catch
+    catch err
         % continue if an error occurs in one iteration
+        disp(err);
     end
 end
 

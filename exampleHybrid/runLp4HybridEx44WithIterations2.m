@@ -1,4 +1,4 @@
-function [lpVer, solveResVer, resNorms] = runLp4HybridEx4WithIterations2()
+function [lpVer, solveResVer, resNorms] = runLp4HybridEx44WithIterations2()
 
 clear;
 echo on;
@@ -7,7 +7,7 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx4Problem();
+[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx44Problem();
 
 % Set the degree
 degree = 2;
