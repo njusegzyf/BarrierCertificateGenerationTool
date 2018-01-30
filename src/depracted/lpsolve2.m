@@ -22,9 +22,7 @@ end
 cvx_begin
 
     variable x(length(lp.decvars));
-
     subject to
-
         Aeq*x==beq
         Aie*x<=bie
 

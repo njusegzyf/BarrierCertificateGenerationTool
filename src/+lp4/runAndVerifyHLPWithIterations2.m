@@ -24,7 +24,7 @@ for iteration = 1 : maxIterations
         disp(resNorms);
         return;
     elseif ~(solveResVer.hasSolution())
-        disp('Unable to find lambda and re for next iterations.');
+        disp('Unable to find phy for an next iteration.');
         return;
     else
         disp(['The rou is: ', num2str(solveResVer.getRou())]);
@@ -45,7 +45,7 @@ for iteration = 1 : maxIterations
         disp(resNorms);
         return;
     elseif ~(solveResVer.hasSolution())
-        disp('Unable to find lambda and re for next iterations.');
+        disp('Unable to find lambda and re for an next iteration.');
         return;
     else
         disp(['The rou is: ', num2str(solveResVer.getRou())]);

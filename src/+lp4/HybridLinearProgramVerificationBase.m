@@ -65,6 +65,14 @@ classdef HybridLinearProgramVerificationBase
         end
         
         function [this, solveRes, resNorms] = solve(this)
+            if lp4.Lp4Config.IS_USE_CVX
+                [this, solveRes, resNorms] = this.solveWithCvx();
+            else 
+                [this, solveRes, resNorms] = this.solveWithLinprog();
+            end
+        end
+        
+        function [this, solveRes, resNorms] = solveWithLinprog(this)
             
             [Aeq, beq, Aie, bie] = collectEqsAndIes(this);
             
@@ -98,38 +106,57 @@ classdef HybridLinearProgramVerificationBase
             
             [Aeq, beq, Aie, bie] = collectEqsAndIes(this);
             
-            % FIXME
-            
-            if ~lp4.Lp4Config.IS_SET_LINPROG_LOWERBOUND
-                tic;
-                [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq);
-                time = toc;
-            else
-                lb = repmat(lp4.Lp4Config.LINPROG_LOWERBOUND, 1, length(this.decvars));
-                tic;
-                [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq, lb);
-                time = toc;
+            if ~this.isAttachRou % if we do not need to minimize rou (not use linprogF)
+                
+                cvx_begin
+                
+                variable x(length(this.decvars));
+                subject to
+                Aie * x <= bie
+                Aeq * x == beq
+                
+                cvx_end
+                
+            else % if we need to minimize rou (use linprogF)
+                
+                rouIndex = this.decvarsIndexes.rouIndex;
+                
+                cvx_begin
+                
+                variable x(length(this.decvars));
+                minimize( x(rouIndex) )
+                subject to
+                Aie * x <= bie
+                Aeq * x == beq
+                
+                cvx_end
+                
             end
             
-            import lp4.HybridLinearProgramVerificationWithGivenPhySolveRes
-            solveRes = HybridLinearProgramVerificationWithGivenPhySolveRes(this, x, fval, flag, time);
+            solveRes = this.createCvxSolveRes(x, cvx_optval, cvx_status, cvx_cputime);
             
             import lp4.Lp4Config
             if Lp4Config.isDebug()
                 solveRes.printSolution();
             end
             
-            if solveRes.hasSolution()
-                resNorms = solveRes.computeAllExprsNorms();
-            else
-                resNorms = [];
-            end
-            
+            % FIXME
+            resNorms = [];
+%             if solveRes.hasSolution()
+%                 resNorms = solveRes.computeAllExprsNorms();
+%             else
+%                 resNorms = [];
+%             end
+             
         end % function solveWithCvx
         
         function solveRes = createSolveRes(this, x, fval, flag, time)
             error("Sub classes should override createSolveRes method.");
             solveRes = 0;
+        end
+        
+        function cvxSolveRes = createCvxSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime)
+            cvxSolveRes = lp4.HybridLinearProgramCvxVerificationSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime);
         end
         
     end % methods

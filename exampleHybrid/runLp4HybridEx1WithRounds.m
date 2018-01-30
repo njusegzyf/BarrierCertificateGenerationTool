@@ -1,4 +1,4 @@
-function [lpVer, solveResVer, resNorms] = runLp4HybridEx1WithIterations2()
+function [lpVer, solveResVer, resNorms] = runLp4HybridEx1WithRounds()
 
 clear;
 echo on;
@@ -15,10 +15,11 @@ pLambdaDegree = 2;
 pReDegree = 2;
 
 randomStartCount = 100;
+randomStartBeginIndex = 1;
 maxIterations = 20;
 
-randomSeedStart = 0;
-rng(randomSeedStart);
+randomSeed = 0;
+rng(randomSeed);
 randomSeeds = rand(2, randomStartCount);
 
 lambdaStart = -1;
@@ -26,14 +27,17 @@ lambdaEnd = 1;
 resStart = 0;
 resEnd = 1;
 
-for i = 1 : randomStartCount
+for i = randomStartBeginIndex : randomStartCount
+    lp4.Lp4Config.displayDelimiterLine();
+    disp(['Begin with random start ', num2str(i), ' :']);
+    lp4.Lp4Config.displayDelimiterLine();
+    
     import lp4util.generateRamdomExprs
     initLambdas = generateRamdomExprs(vars, pLambdaDegree, stateNum, lambdaStart, lambdaEnd, randomSeeds(1, i));
     initRes = generateRamdomExprs(vars, degree, length(guards), resStart, resEnd, randomSeeds(2, i));
     
-    try    
-        import lp4.runAndVerifyHLPWithIterations2
-        [lpVer, solveResVer, resNorms] = runAndVerifyHLPWithIterations2(...
+    try
+        [lpVer, solveResVer, resNorms] = lp4.runAndVerifyHLPWithIterations2(...
             vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree,...
             maxIterations, initLambdas, initRes);
         

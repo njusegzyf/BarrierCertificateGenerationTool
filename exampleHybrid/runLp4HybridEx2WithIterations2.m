@@ -1,4 +1,4 @@
-function [lpVer, solveResVer, resNorms] = runLp4HybridEx3WithIterations1()
+function [lpVer, solveResVer, resNorms] = runLp4HybridEx2WithIterations2()
 
 clear;
 echo on;
@@ -7,26 +7,25 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx3Problem();
+[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx2Problem();
 x1 = vars(1);
 x2 = vars(2);
 
 % Set the degree
-degree = 1;
+degree = 2;
 pLambdaDegree = 1;
 pReDegree = 1;
 
 maxIterations = 10;
 
-initPhys = [(14*x1)/225 + (11*x2)/150 - 50/150,...
-    x2/20 - x1/20 + 50/100];
+initRes = [1, 1];
+initLambdas = [-0.2, 1];
 
 
-
-import lp4.runAndVerifyHLPWithIterations1
-[lpVer, solveResVer, resNorms] = runAndVerifyHLPWithIterations1(...
+import lp4.runAndVerifyHLPWithIterations2
+[lpVer, solveResVer, resNorms] = runAndVerifyHLPWithIterations2(...
     vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree,...
-    maxIterations, initPhys);
+    maxIterations, initLambdas, initRes);
 
 warning('on')
 echo off;

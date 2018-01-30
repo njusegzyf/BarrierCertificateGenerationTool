@@ -23,9 +23,7 @@ lpVer = HybridLinearProgramVerificationWithGivenLambdaAndRe.create(vars, stateNu
     lambdas, res);
 
 [lpVer, solveResVer, resNorms] = lpVer.solve();
-if solveResVer.hasSolution() && lp4.isResNormsOk(resNorms)
-    return;
-end
+lp4.Lp4Config.displaySolveRes(solveResVer, resNorms);
 
 % for lambda1 = [1, 0, -1]
 %     for lambda2 = [1, 0, -1]

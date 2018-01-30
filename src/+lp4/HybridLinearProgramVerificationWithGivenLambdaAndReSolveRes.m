@@ -10,8 +10,8 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
         fval
         % a value exitflag that describes the exit condition
         exitflag
-        % a structure output that contains information about the optimization process
-        % output
+        % a structure output that contains information about the optimization process output
+        output
         
         time
     end
@@ -36,7 +36,9 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
         
         function res = getRou(this)
             if this.linearProgram.isAttachRou
-                res = this.x(this.linearProgram.decvarsIndexes.rouIndex);
+                % as we set linprogF = rou, so we can directly return fval
+                res = this.fval;
+                % res = this.x(this.linearProgram.decvarsIndexes.rouIndex);
             else
                 error('Rou is not used.')
             end

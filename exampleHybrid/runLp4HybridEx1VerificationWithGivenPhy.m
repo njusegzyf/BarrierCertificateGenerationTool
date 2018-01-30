@@ -23,12 +23,11 @@ phys = [- (7464992003993547*T)/1152921504606846976 - (3*t)/4 - (1190028783492395
 
 import lp4.HybridLinearProgramVerificationWithGivenPhy
 lpVer = HybridLinearProgramVerificationWithGivenPhy.create(vars, stateNum,...
-    fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree,...
+    fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree,...
     phys);
 
 [lpVer, solveResVer] = lpVer.solve();
-
-
+lp4.Lp4Config.displaySolveRes(solveResVer, resNorms);
 
 warning('on')
 echo off;

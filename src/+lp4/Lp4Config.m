@@ -24,14 +24,16 @@ classdef Lp4Config
         % 第二步验证时，如果求的是 lambda，则其次数限制 = 第一步求解时 lambda，的次数限制 + VERIFICATION_PHY_DEGREE_INC
         VERIFICATION_LAMBDA_DEGREE_INC = 0;
         
-        DEFAULT_DEC_VAR_SIZE = 1024;
+        DEFAULT_DEC_VAR_SIZE = 512;
         
         DEFAULT_PARTITION_REPEAT_NUM = 1024;
         
         DEFAULT_EPS = 0.00001
         
-        IS_SET_LINPROG_LOWERBOUND = false;
+        IS_SET_LINPROG_LOWERBOUND = true;
         LINPROG_LOWERBOUND = -100000000000000;
+        
+        IS_USE_CVX = true;
     end
     
     methods (Static)
@@ -64,6 +66,12 @@ classdef Lp4Config
             else
                 disp('Verify succeed, norms ;');
                 disp(resNorms);
+            end
+        end
+        
+        function errorIfWrongType(obj, objTypeStr) 
+            if ~isa(linearProgram, 'lp4.HybridLinearProgramVerificationBase')
+                error('Error. Arg linearProgram must be a lp4.HybridLinearProgramVerificationBase, not a %s.',class(linearProgram));
             end
         end
     end

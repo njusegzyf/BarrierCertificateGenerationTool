@@ -11,7 +11,7 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
         % a value exitflag that describes the exit condition
         exitflag
         % a structure output that contains information about the optimization process
-        % output
+        output
         
         time
     end
@@ -19,6 +19,7 @@ classdef HybridLinearProgramVerificationWithGivenPhySolveRes
     methods
         function this = HybridLinearProgramVerificationWithGivenPhySolveRes(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg)
             %HybridLinearProgramVerificationWithGivenPhySolveRes 构造此类的实例
+            
             this.linearProgram = linearProgramArg;
             this.x = xArg;
             this.fval = fvalArg;

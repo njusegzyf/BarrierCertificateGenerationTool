@@ -10,8 +10,8 @@ classdef LinearProgram4Verification3SolveResult
         fval
         % a value exitflag that describes the exit condition
         exitflag
-        % a structure output that contains information about the optimization process
-        % output
+        % a structure output that contains information about the optimization process output
+        output
         
         time
         
