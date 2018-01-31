@@ -40,7 +40,7 @@ classdef Lp4Config
     end
     
     methods (Static)
-
+        
         function res = processDegree(de)
             if mod(de, 2) == 0
                 res = de;
@@ -72,10 +72,10 @@ classdef Lp4Config
             end
         end
         
-        function errorIfWrongType(obj, objTypeStr) 
-            if ~isa(linearProgram, 'lp4.HybridLinearProgramVerificationBase')
-                error('Error. Arg linearProgram must be a lp4.HybridLinearProgramVerificationBase, not a %s.',class(linearProgram));
-            end
+        function [lpVer, solveResVer, resNorms] = createAbsentVerificationResult()
+            lpVer = 0;
+            solveResVer = 0;
+            resNorms = [];
         end
     end
 end

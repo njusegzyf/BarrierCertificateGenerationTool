@@ -2,7 +2,7 @@ function [lp, solveRes, lpVer, solveResVer, resNorms, isVerified] = runAndVerify
     lp, phyRange, pLambdaRange, phyRangeInVerify)
 
 % Compared to `runAndVerifyWithLambdaAndPhyV3`, this version use(reuse) the given LP for verification.
-	
+
 lp.pPartitions = repmat(phyRange, 1024, 1);
 lp.pLambdaPartitions = repmat(pLambdaRange, 1024, 1);
 lp = lp.setWConstraint();
@@ -13,11 +13,9 @@ lp = lp.setWConstraint();
 isVerified = false;
 
 if ~solveRes.hasSolution()
-	disp('Not find feasible solution to verify.');
-    lpVer = 0;
-    solveResVer = 0;
-    resNorms = [];
-	return;
+    disp('Not find feasible solution to verify.');
+    [lpVer, solveResVer, resNorms] = lp4.Lp4Config.createAbsentVerificationResult();
+    return;
 end
 
 % verify the lp problem with the computed lambda

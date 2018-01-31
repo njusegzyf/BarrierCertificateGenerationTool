@@ -80,14 +80,6 @@ classdef LinearProgram4_v3
             this = this.setWConstraint();
         end
         
-        function lp = set.f(lp, f)
-            lp.f = f;
-        end
-        
-        function lp = set.eps(lp, eps)
-            lp.eps = eps;
-        end
-        
         function this = addDecisionVars(this, decvars)
             % addDecisionVars add decision variables.
             %
@@ -124,8 +116,7 @@ classdef LinearProgram4_v3
             this.pLambdaPolynomial = SymbolicPolynomial(this.indvars, pLambdaDegree, pLambda, pLambdaExpr);
             
             % introduce W = P * PLambda
-            import lp4.LinearProgram4
-            [this.wSymbolicVars, this.wExpression] = LinearProgram4.createWExpression(this.phyPolynomial, this.pLambdaPolynomial);
+            [this.wSymbolicVars, this.wExpression] = lp4.LinearProgram4_v3.createWExpression(this.phyPolynomial, this.pLambdaPolynomial);
             this = this.addDecisionVars(this.wSymbolicVars);
         end
         
@@ -431,30 +422,8 @@ classdef LinearProgram4_v3
             
             % verify
             
-            import lp4.LinearProgram4Verification2
-            lpVer = LinearProgram4Verification2(lp.indvars);
-            
-            lpVer.f = lp.f;
-            lpVer.eps = lp.eps;
-            
-            % set the degree of phy
-            import lp4.Lp4Config
-            lpVer = lpVer.setDegreeAndInit(lp.degree + Lp4Config.VERIFICATION_PHY_DEGREE_INC);
-            
-            % set lambda expression
-            lpVer.lambda = solveRes.getPLmabdaExpression();
-            
-            lpVer = lpVer.setThetaConstraint(lp.theta);
-            lpVer = lpVer.setPsyConstraint(lp.psy);
-            lpVer = lpVer.setZetaConstraint(lp.zeta);
-            lpVer = lpVer.generateEqsForConstraint1To3();
-            
-            if isa(phyRangeInVerify, 'lp4util.Partition')
-                lpVer.pPartitions = repmat(phyRangeInVerify, 1024, 1);
-                lpVer = lpVer.setPhyConstraint();
-            end
-            
-            lpVer = lpVer.setDevVarsConstraint();
+            lpVer = lp4.LinearProgram4Verification2.create(lp.indvars,...
+                lp.f, lp.eps, lp.theta, lp.psy, lp.zeta, lp.degree, solveRes.getPLmabdaExpression(), phyRangeInVerify);
             
             % solve the lp problem
             [lpVer, solveResVer, resNorms] = lpVer.solve();
@@ -481,25 +450,8 @@ classdef LinearProgram4_v3
             
             % verify
             
-            import lp4.LinearProgram4Verification3
-            lpVer = LinearProgram4Verification3(lp.indvars);
-            
-            lpVer.f = lp.f;
-            lpVer.eps = lp.eps;
-            
-            % set the degree of lambda
-            import lp4.Lp4Config
-            lpVer = lpVer.setDegreeAndInit(lp.pLambdaDegree + Lp4Config.VERIFICATION_LAMBDA_DEGREE_INC);
-            
-            % set phy expression
-            lpVer.phy = solveRes.getPhyExpression();
-            
-            lpVer = lpVer.setThetaConstraint(lp.theta);
-            lpVer = lpVer.setPsyConstraint(lp.psy);
-            lpVer = lpVer.setZetaConstraint(lp.zeta);
-            lpVer = lpVer.generateEqsForConstraint1To3();
-            
-            lpVer = lpVer.setDevVarsConstraint();
+            lpVer = lp4.LinearProgram4Verification3.create(lp.indvars,...
+                lp.f, lp.eps, lp.theta, lp.psy, lp.zeta, lp.pLambdaDegree, solveRes.getPhyExpression());
             
             [lpVer, solveResVer, resNorms] = lpVer.solve();
             

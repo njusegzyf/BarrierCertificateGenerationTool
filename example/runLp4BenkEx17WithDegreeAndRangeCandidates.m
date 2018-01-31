@@ -13,7 +13,7 @@ warning('off')
 
 % Set the degree of phy and lambda
 degrees = [1, 2, 3, 4];
-pLambdaDegrees = [1, 2, 3];
+pLambdaDegrees = [2, 3];
 
 ranges = [1, 0.5, 0.3, 0.15, 0.1];
 import lp4util.createRangeCandidates

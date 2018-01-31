@@ -1,9 +1,9 @@
 function [lp, solveRes, lpVer, solveResVer, resNorms] = runLp4Example2WithDegreeAndRangeCandidates()
 
-clear; 
+clear;
 echo on;
 
-% disable warning of `Support of character vectors will be removed in a future release.` 
+% disable warning of `Support of character vectors will be removed in a future release.`
 % which is produced by function `monomials`.
 warning('off')
 
@@ -13,8 +13,8 @@ warning('off')
 
 
 % set the degree of phy and lambda
-degrees = [1, 2, 3, 4];
-pLambdaDegrees = [1, 2, 3];
+degrees = [4];
+pLambdaDegrees = [0, 1, 2, 3];
 
 % set the ranges
 ranges = [1, 0.5, 0.3, 0.15, 0.1];

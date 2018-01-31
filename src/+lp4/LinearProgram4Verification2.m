@@ -1,26 +1,10 @@
-classdef LinearProgram4Verification2
-    %LinearProgram4Verification2 A linear program used to verify the solution of LinearProgram4
-    % with given lambda.
+classdef LinearProgram4Verification2 < lp4.LinearProgram4VerificationBase
+    %LinearProgram4Verification2 A linear program used to verify the solution of LinearProgram4 with given lambda.
     
     properties
-        indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
         degree % 问题1中的带求多项式函数φ的次数，类型为正整数
-        
-        phy % 问题1中的多项式φ
         phySize
-        lambda % 问题1中的多项式λ
-        
-        eps % 问题1中的?1和?1构成的向量
-        f % 问题1中的f
-        decvars % 待验证解中的决策变量，包括 phy, Cα,β, Cγ,δ, Cu,v
-        exprs
-        
         phyPolynomial
-        
-        c1Length
-        c2Length
-        c3Length
-        
         pPartitions = []
     end % properties
     
@@ -33,7 +17,7 @@ classdef LinearProgram4Verification2
                 error('vars is not a vector of a matrix of symbolic variables');
             end
             
-            this.indvars = reshape(indvarsArg, 1, size(indvarsArg, 1) * size(indvarsArg, 2));
+            this.indvars = lp4util.reshapeToVector(indvarsArg);
             
             this.degree = 0;
             this.eps = [];
@@ -41,31 +25,29 @@ classdef LinearProgram4Verification2
             this.decvars = [];
         end
         
-        function lp = set.f(lp, f)
-            lp.f = f;
-        end
-        
-        function lp = set.eps(lp, eps)
-            lp.eps = eps;
-        end
-        
-        function lp = set.lambda(lp, lambda)
-            lp.lambda = lambda;
-        end
-        
-        function this = addDecisionVars(this, decvars)
-            % addDecisionVars add decision variables.
-            %
-            % lp is a linear program.
-            % decvars are decsion variables and should be symbolic.
+        function this = init(this, f, eps, theta, psy, zeta, degree, lambda, phyRangeInVerify)
+            this.f = f;
+            this.eps = eps;
             
-            if isa(decvars, 'sym')
-                % 将新的决策变量变为行向量的形式添加到lp的lp.decvars属性中
-                % decision vars can only be a vector of a matrix of symbolic variables
-                % reshape `decvars` to of dim `[1, size(decvars, 1) * size(decvars, 2)]`
-                this.decvars = [this.decvars reshape(decvars, 1, size(decvars, 1) * size(decvars, 2))];
+            % set the degree of phy
+            this = this.setDegreeAndInit(degree + lp4.Lp4Config.VERIFICATION_PHY_DEGREE_INC);
+            
+            % set lambda expression
+            this.lambda = lambda;
+            
+            this = this.setThetaConstraint(theta);
+            this = this.setPsyConstraint(psy);
+            this = this.setZetaConstraint(zeta);
+            this = this.generateEqsForConstraint1To3();
+            
+            if isa(phyRangeInVerify, 'lp4util.Partition')
+                this.pPartitions = repmat(phyRangeInVerify, 1024, 1);
+                this = this.setPhyConstraint();
             end
             
+            this = this.setDevVarsConstraint();
+            
+            this = this.setLinprogF();
         end
         
         function this = setDegreeAndInit(this, degree)
@@ -79,6 +61,11 @@ classdef LinearProgram4Verification2
             
             import lp4util.SymbolicPolynomial
             this.phyPolynomial = SymbolicPolynomial(this.indvars, degree, p, this.phy);
+            
+            if this.isAttachRou
+                this.rouVar = sym('rou');
+                [this, this.rouIndex, ~] = this.addDecisionVars(this.rouVar);
+            end
         end
         
         function this = setThetaConstraint(this, theta)
@@ -101,7 +88,7 @@ classdef LinearProgram4Verification2
             import lp4.Lp4Config
             de = computeDegree(constraint1, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
-            c_alpha_beta = sym('c_alpha_beta', [1,10000]); % pre-defined varibales, only a few of them are the actual variables
+            c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
             this = this.addDecisionVars(constraintDecvars);
             this.c1Length = length(constraintDecvars);
@@ -138,7 +125,7 @@ classdef LinearProgram4Verification2
             import lp4.Lp4Config
             de = computeDegree(constraint2, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
-            c_gama_delta = sym('c_gama_delta',[1,10000]);
+            c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
             [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
             this = this.addDecisionVars(constraintDecvars);
             this.c2Length = length(constraintDecvars);
@@ -170,7 +157,7 @@ classdef LinearProgram4Verification2
             import lp4.Lp4Config;
             de = computeDegree(constraint3, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
             
-            c_u_v = sym('c_u_v',[1,10000]);
+            c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
             [constraintDecvars, expression] = constraintExpression(de,zeta,c_u_v);
             this = this.addDecisionVars(constraintDecvars);
             this.c3Length = length(constraintDecvars);
@@ -228,6 +215,13 @@ classdef LinearProgram4Verification2
             for k = 1 : 1 : cLength
                 decexpr.A(k, cStart + k) = -1;
             end
+            if this.isAttachRou
+                rouIndex = this.getRouIndex();
+                for k = 1 : cLength
+                    % - rou
+                    decexpr.A(k, rouIndex) = -1;
+                end
+            end
             bc = zeros(cLength, 1);
             decexpr.b = bc;
             
@@ -254,13 +248,11 @@ classdef LinearProgram4Verification2
                 end
             end
             
-            linprogF = zeros(1, length(this.decvars));
             tic;
-            [x, fval, flag, ~] = linprog(linprogF, Aie, bie, Aeq, beq);
+            [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq);
             time = toc;
             
-            import lp4.LinearProgram4Verification2SolveResult
-            solveRes = LinearProgram4Verification2SolveResult(this, x, fval, flag, time);
+            solveRes = this.createSolveRes(x, fval, flag, time);
             
             import lp4.Lp4Config
             if Lp4Config.isDebug()
@@ -268,7 +260,7 @@ classdef LinearProgram4Verification2
             end
             
             if solveRes.hasSolution()
-                resNorms = solveRes.verifyNorms();
+                resNorms = solveRes.computeAllExprsNorms();
             else
                 resNorms = [];
             end
@@ -284,6 +276,9 @@ classdef LinearProgram4Verification2
         
         function res = getC1Start(this)
             res = this.getPhyCoefficientStart() + this.getPhyCoefficientLength();
+            if this.isAttachRou
+                res = res + 1;
+            end
         end
         
         function res = getC2Start(this)
@@ -294,6 +289,25 @@ classdef LinearProgram4Verification2
             res = this.getC2Start() + this.c2Length;
         end
         
+        function solveRes = createSolveRes(this, x, fval, flag, time)
+            solveRes = lp4.LinearProgram4Verification2SolveResult(this, x, fval, flag, time);
+        end
+        
     end % methods
+    
+    methods (Static)
+        
+        function lp = create(indvars, f, eps, theta, psy, zeta, degree, lambda, phyRangeInVerify)
+            lp = lp4.LinearProgram4Verification2(indvars);
+            lp = lp.init(f, eps, theta, psy, zeta, degree, lambda, phyRangeInVerify);
+        end
+        
+        function lp = createWithRou(indvars, f, eps, theta, psy, zeta, degree, lambda, phyRangeInVerify)
+            lp = lp4.LinearProgram4Verification2(indvars);
+            lp.isAttachRou = true;
+            lp = lp.init(f, eps, theta, psy, zeta, degree, lambda, phyRangeInVerify);
+        end
+        
+    end % methods (Static)
     
 end % classdef

@@ -1,31 +1,13 @@
-function [lpVer, solveResVer, resNorms] = runLp4HybridEx4WithRounds()
+function [lpVer, solveResVer, resNorms] = runAndVerifyHLPWithRounds(...
+    vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards,... % the problem
+    degree, pLambdaDegree, pReDegree,...
+    lambdaStart, lambdaEnd, resStart, resEnd,... % the range of initLambda and initRe
+    randomStartCount, randomStartBeginIndex, maxIterations, randomSeed,...
+    isStopOnError)
 
-clear;
-echo on;
-
-% disable warning of `Support of character vectors will be removed in a future release.`
-% which is produced by function `monomials`.
-warning('off')
-
-[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx4Problem();
-
-% Set the degree
-degree = 2;
-pLambdaDegree = 1;
-pReDegree = 1;
-
-randomStartCount = 100;
-randomStartBeginIndex = 1;
-maxIterations = 20;
-
-randomSeed = 0;
+% generate random ints that are random seeds for generate random init expression
 rng(randomSeed);
 randomSeeds = randi(10000000, 2, randomStartCount, 'int32');
-
-lambdaStart = -1;
-lambdaEnd = 1;
-resStart = 0;
-resEnd = 1;
 
 for i = randomStartBeginIndex : randomStartCount
     lp4.Lp4Config.displayDelimiterLine();
@@ -45,12 +27,13 @@ for i = randomStartBeginIndex : randomStartCount
             return;
         end
     catch err
-        % continue if an error occurs in one iteration
         disp(err);
+        if isStopOnError
+            return
+        else
+            % continue if an error occurs in one iteration
+        end
     end
 end
-
-warning('on')
-echo off;
 
 end

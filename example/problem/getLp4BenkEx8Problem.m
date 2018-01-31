@@ -22,7 +22,7 @@ theta2 = 5 * (y + 0.1);
 g_theta = [theta1, theta2];
 
 % Constructing the psy and zeta constraint
-g_phy = [(x + 1)/2, (y + 1)/2];
+g_psy = [(x + 1)/2, (y + 1)/2];
 g_zeta = [2*x - 1, 2*y - 1];
 
 end

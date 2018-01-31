@@ -12,7 +12,7 @@ warning('off')
                               
 
 % set the degree of phy and lambda
-degrees = [1,2];
+degrees = [2];
 pLambdaDegrees = [0,1,2];
 
 % set the ranges

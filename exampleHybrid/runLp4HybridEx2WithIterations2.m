@@ -16,10 +16,10 @@ degree = 2;
 pLambdaDegree = 1;
 pReDegree = 1;
 
-maxIterations = 10;
+maxIterations = 100;
 
 initRes = [1, 1];
-initLambdas = [-0.2, 1];
+initLambdas = [1, 1];
 
 
 import lp4.runAndVerifyHLPWithIterations2

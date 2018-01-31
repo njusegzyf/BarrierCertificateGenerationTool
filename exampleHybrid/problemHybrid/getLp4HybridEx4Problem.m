@@ -7,8 +7,8 @@ vars = [x1 x2 x3];
 stateNum = 2;
 
 % Constructing the vector field dx/dt = f
-f1 = [x2;    -x1+x3;    x1+(2*x2+3*x3)*(1+x3^2)];
-f2 = [x2;    -x1+x3;    -x1-2*x2-3*x3];
+f1 = [x2;    -x1-x3;    x1+(2*x2+3*x3)*(1+x3^2)];
+f2 = [x2;    -x1-x3;    -x1-2*x2-3*x3];
 fs = [f1, f2];
 % Note: use `fs(:, 1)` to get f1
 

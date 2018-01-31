@@ -1,4 +1,4 @@
-function [lpVer, solveResVer] = runLp4HybridEx1VerificationWithGivenPhy()
+function [lpVer, solveResVer, resNorms] = runLp4HybridEx1VerificationWithGivenPhy()
 
 clear;
 echo on;
@@ -26,7 +26,7 @@ lpVer = HybridLinearProgramVerificationWithGivenPhy.create(vars, stateNum,...
     fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree,...
     phys);
 
-[lpVer, solveResVer] = lpVer.solve();
+[lpVer, solveResVer, resNorms] = lpVer.solve();
 lp4.Lp4Config.displaySolveRes(solveResVer, resNorms);
 
 warning('on')

@@ -1,9 +1,9 @@
-function [lpVer, solveResVer, resNorms] = runAndVerifyHLPWithIterations1(...
-    vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree,...
-    maxIterations, initPhy)
+function [lpVer, solveResVer, resNorms] = runAndVerifyLp4WithIterations2(...
+    vars, f, eps, theta, psy, zeta, degree, pLambdaDegree,...
+    maxIterations, initLambda)
 
-phy = initPhy;
-lambda = [];
+phy = 0;
+lambda = initLambda;
 
 for iteration = 1 : maxIterations
     lp4.Lp4Config.displayDelimiterLine();
@@ -11,33 +11,7 @@ for iteration = 1 : maxIterations
     lp4.Lp4Config.displayDelimiterLine();
     
     
-    import lp4.HybridLinearProgramVerificationWithGivenPhy
-    lpVer = HybridLinearProgramVerificationWithGivenPhy.createWithRou(...
-        vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree,...
-        phy);
-    
-    [lpVer, solveResVer, resNorms] = lpVer.solve();
-    
-    if solveResVer.hasSolutionWithRou()
-        disp('Verify feasible solution succeed, norms :');
-        disp(resNorms);
-        return;
-    elseif ~(solveResVer.hasSolution())
-        disp('Unable to find lambda and re for an next iteration.');
-        return;
-    else
-        disp(['The rou is: ', num2str(solveResVer.getRou())]);
-        lp4.Lp4Config.displayDelimiterLine();
-        lambda = solveResVer.getPLmabdaExpressions();
-        res = solveResVer.getPReExpressions();
-    end
-    
-    
-    import lp4.HybridLinearProgramVerificationWithGivenLambdaAndRe
-    lpVer = HybridLinearProgramVerificationWithGivenLambdaAndRe.createWithRou(...
-        vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree,...
-        lambda, res);
-    
+    lpVer = lp4.LinearProgram4Verification2.createWithRou(vars, f, eps, theta, psy, zeta, degree, lambda, 0);
     [lpVer, solveResVer, resNorms] = lpVer.solve();
     
     if solveResVer.hasSolutionWithRou()
@@ -50,8 +24,26 @@ for iteration = 1 : maxIterations
     else
         disp(['The rou is: ', num2str(solveResVer.getRou())]);
         lp4.Lp4Config.displayDelimiterLine();
-        phy = solveResVer.getPhyExpressions();
+        phy = solveResVer.getPhyExpression();
     end
+    
+    
+    lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, theta, psy, zeta, pLambdaDegree, phy);
+    [lpVer, solveResVer, resNorms] = lpVer.solve();
+    
+    if solveResVer.hasSolutionWithRou()
+        disp('Verify feasible solution succeed, norms :');
+        disp(resNorms);
+        return;
+    elseif ~(solveResVer.hasSolution())
+        disp('Unable to find lambda and re for an next iteration.');
+        return;
+    else
+        disp(['The rou is: ', num2str(solveResVer.getRou())]);
+        lp4.Lp4Config.displayDelimiterLine();
+        lambda = solveResVer.getLambdaExpression();
+    end
+    
 end
 
 lp4.Lp4Config.displayDelimiterLine();

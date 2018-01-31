@@ -9,12 +9,7 @@ classdef CvxSolveRes < lp4util.SolveResBase
             
             exitflag = lp4util.CvxSolveRes.convertCvxStatusToExitflag(cvxStatus);
             
-            %this@lp4util.SolveResBase(linearProgram, x, cvxOptval, exitflag, cvxCpuTime);
-            this.linearProgram = linearProgram;
-            this.x = x;
-            this.fval = cvxOptval;
-            this.exitflag = exitflag;
-            this.time = cvxCpuTime;
+            this@lp4util.SolveResBase(linearProgram, x, cvxOptval, exitflag, cvxCpuTime);
             
             this.output = cvxStatus;
         end

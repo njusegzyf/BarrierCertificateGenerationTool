@@ -1,6 +1,5 @@
 classdef LinearProgram4Verification
-    %LINEARPROGRAM A linear program used to verify the solution of LinearProgram4
-    % with given phy and lambda.
+    %LINEARPROGRAM A linear program used to verify the solution of LinearProgram4 with given phy and lambda.
     
     properties
         indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量

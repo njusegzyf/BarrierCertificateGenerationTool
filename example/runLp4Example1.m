@@ -11,8 +11,7 @@ warning('off')
 
 [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4Example1Problem();
 
-import lp4.LinearProgram4
-lp = LinearProgram4(vars);
+lp = lp4.LinearProgram4_v3(vars);
 
 lp.f = f;
 lp.eps = eps;

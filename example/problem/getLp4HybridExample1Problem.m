@@ -1,4 +1,5 @@
 function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4HybridExample1Problem()
+% 该例子是将混成系统的例子转为连续系统的例子
 
 % independent variables
 syms x1 x2 x3;

@@ -7,7 +7,7 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
         
         pReDegree
         pRePolynomials
-
+        
     end % properties
     
     methods
@@ -66,24 +66,6 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
             this = this.setDecVarsConstraint();
             
             this = this.setLinprogF();
-        end
-        
-        function [this, startIndex, endIndex] = addDecisionVars(this, decvars)
-            % addDecisionVars add decision variables.
-            %
-            % lp is a linear program.
-            % decvars are decsion variables and should be symbolic.
-            
-            if isa(decvars, 'sym')
-                % 将新的决策变量变为行向量的形式添加到lp的lp.decvars属性中
-                % decision vars can only be a vector of a matrix of symbolic variables
-                % reshape `decvars` to of dim `[1, size(decvars, 1) * size(decvars, 2)]`
-                startIndex = size(this.decvars, 2) + 1;
-                this.decvars = [this.decvars reshape(decvars, 1, size(decvars, 1) * size(decvars, 2))];
-                endIndex = size(this.decvars, 2);
-            else
-                error("Wrong decvars.");
-            end
         end
         
         function this = setDegreeAndInit(this, pLambdaDegree, pReDegree)
@@ -376,7 +358,7 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
             
             this.exprs(exprNum) = expr;
         end % function setDecVarsConstraint
-                
+        
         function res = getPLambdaCoefficientStart(this, i)
             res = this.decvarsIndexes.lambdaStarts(i);
         end

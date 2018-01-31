@@ -16,7 +16,7 @@ pReDegree = 1;
 
 randomStartCount = 100;
 randomStartBeginIndex = 1;
-maxIterations = 20;
+maxIterations = 100;
 
 randomSeed = 0;
 rng(randomSeed);
@@ -44,8 +44,9 @@ for i = randomStartBeginIndex : randomStartCount
         if solveResVer.hasSolutionWithRou()
             return;
         end
-    catch
+    catch err
         % continue if an error occurs in one iteration
+        disp(err);
     end
 end
 

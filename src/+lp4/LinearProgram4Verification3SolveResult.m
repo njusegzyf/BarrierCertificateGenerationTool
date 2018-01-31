@@ -1,39 +1,12 @@
-classdef LinearProgram4Verification3SolveResult
+classdef LinearProgram4Verification3SolveResult < lp4.Lp4AndHlpVerificationSolveResBase
     %LinearProgram4Verification3SolveResult Represents a solve result of LinearProgram4Verification3.
-    
-    properties
-        linearProgram
-        
-        % the result of solving the linear programming
-        x
-        % the value of the objective function fun at the solution x: fval = f'*x.
-        fval
-        % a value exitflag that describes the exit condition
-        exitflag
-        % a structure output that contains information about the optimization process output
-        output
-        
-        time
-        
-        normThreadhold = 0.00001
-    end
     
     methods
         function this = LinearProgram4Verification3SolveResult(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg)
             %LinearProgram4Verification2SolveResult 构造此类的实例
-            if ~(isa(linearProgramArg, 'LinearProgram4Verification3'))
-                error('');
-            end
+            errorIfWrongType(linearProgramArg, 'lp4.LinearProgram4Verification3', 'linearProgramArg');
             
-            this.linearProgram = linearProgramArg;
-            this.x = xArg;
-            this.fval = fvalArg;
-            this.exitflag = exitflagArg;
-            this.time = timeArg;
-        end
-        
-        function res = hasSolution(this)
-            res = (this.exitflag == 1);
+            this@lp4.Lp4AndHlpVerificationSolveResBase(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg);
         end
         
         function res = getLambdaCoefficient(this)
@@ -46,8 +19,7 @@ classdef LinearProgram4Verification3SolveResult
             import lp4util.reshapeToVector
             res = reshapeToVector(this.getLambdaCoefficient()) * monomials(lp.indvars, 0 : lp.lambdaDegree);
         end
-        
-        
+
         function res = verify(this)
             for i = 1 : 3
                 if ~(this.verifyExpr(i))
@@ -65,26 +37,6 @@ classdef LinearProgram4Verification3SolveResult
             
             mid = expr.A * this.x - expr.b;
             res = norm(mid) <= this.normThreadhold;
-        end
-        
-        function res = verifyNorms(this)
-            res(3) = this.verifyExprNorm(3);
-            for i = 1 : 2
-                res(i) = this.verifyExprNorm(i);
-            end
-        end
-        
-        function res = verifyExprNorm(this, index)
-            lp = this.linearProgram;
-            expr = lp.exprs(index);
-            
-            if strcmp(expr.name, 'empty') || strcmp(expr.type, 'ie')
-                res = 0;
-                return;
-            end
-            
-            mid = expr.A * this.x - expr.b;
-            res = norm(mid);
         end
         
         function printSolution(this)
