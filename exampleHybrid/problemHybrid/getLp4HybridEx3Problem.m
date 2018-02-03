@@ -1,5 +1,7 @@
 function [vars, stateNum, fs, eps, thetaStateIndex, g_theta, g_psys, g_zetas, g_guards] = getLp4HybridEx3Problem() 
 
+% Note: This problem is solved with degree = 1, degree = 1; pLambdaDegree = 1; pReDegree = 1;
+
 % independent variables
 syms x1 x2;
 vars = [x1 x2];

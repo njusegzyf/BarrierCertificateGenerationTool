@@ -10,7 +10,7 @@ warning('off')
 [vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx2Problem();
 
 % Set the degree
-degree = 2;
+degree = 3;
 pLambdaDegree = 1;
 pReDegree = 1;
 

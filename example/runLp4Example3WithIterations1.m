@@ -1,9 +1,9 @@
 function [lpVer, solveResVer, resNorms] = runLp4Example3WithIterations1()
 
-clear; 
+clear;
 echo on;
 
-% disable warning of `Support of character vectors will be removed in a future release.` 
+% disable warning of `Support of character vectors will be removed in a future release.`
 % which is produced by function `monomials`.
 warning('off')
 
@@ -30,5 +30,3 @@ warning('on')
 
 echo off;
 end
-
-

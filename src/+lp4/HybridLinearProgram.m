@@ -2,7 +2,7 @@ classdef HybridLinearProgram
     
     properties
         indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
-        degree % 问题1中的带求多项式函数φ的次数，类型为正整数
+        degree % 问题1中的带求发多项式函数φ的次数，类型为正整数
         
         stateNum
         thetaStateIndex
@@ -60,8 +60,7 @@ classdef HybridLinearProgram
                 error('Wrong guard num.');
             end
             
-            import lp4util.reshapeToVector
-            this.indvars = reshapeToVector(indvarsArg);
+            this.indvars = lp4util.reshapeToVector(indvarsArg);
             
             this.stateNum = stateNum;
             this.guardNum = guardNum;
@@ -75,8 +74,7 @@ classdef HybridLinearProgram
             
             this.exprs = [];
             
-            import lp4.HybridLinearProgramDecVarIndexes
-            this.decvarsIndexes = HybridLinearProgramDecVarIndexes();
+            this.decvarsIndexes = lp4.HybridLinearProgramDecVarIndexes();
         end
         
         function this = initWithoutRanges(this, fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree)
@@ -104,8 +102,6 @@ classdef HybridLinearProgram
         end
         
         function this = setRangeAndWConstraint(this, phyRange, pLambdaRange, pReRange)
-            
-            import lp4util.Partition
             this.pPartitions = repmat(phyRange, this.stateNum, 1024);
             this.pLambdaPartitions = repmat(pLambdaRange, this.stateNum, 1024);
             this.pRePartitions = repmat(pReRange, this.guardNum, 1024);
@@ -189,13 +185,11 @@ classdef HybridLinearProgram
             
             % introduce WLambda = P * PLambda for each state in formula 2
             this.wLambdas = [];
-            import lp4.HybridLinearProgram
             for i = 1 : this.stateNum
                 name = strcat('wLambda', num2str(i), '_');
-                [currentWLambdaSymbolicVars, currentWLambdaExpression] = HybridLinearProgram.createWExpression(name, this.phyPolynomials(i), this.pLambdaPolynomials(i));
+                [currentWLambdaSymbolicVars, currentWLambdaExpression] = lp4.HybridLinearProgram.createWExpression(name, this.phyPolynomials(i), this.pLambdaPolynomials(i));
                 
-                import lp4.DecVarsAndExpr
-                this.wLambdas = [this.wLambdas, DecVarsAndExpr(currentWLambdaSymbolicVars, currentWLambdaExpression)];
+                this.wLambdas = [this.wLambdas, lp4.DecVarsAndExpr(currentWLambdaSymbolicVars, currentWLambdaExpression)];
                 
                 [this, this.decvarsIndexes.wLambdaStarts(i), this.decvarsIndexes.wLambdaEnds(i)] = this.addDecisionVars(currentWLambdaSymbolicVars);
             end
@@ -208,10 +202,9 @@ classdef HybridLinearProgram
                 guardDest = guard.destStateIndex;
                 name = strcat('wRe', num2str(i), '_');
                 
-                [currentWReSymbolicVars, currentWReExpression] = HybridLinearProgram.createWExpression(name, this.phyPolynomials(guardFrom), this.pRePolynomials(i));
+                [currentWReSymbolicVars, currentWReExpression] = lp4.HybridLinearProgram.createWExpression(name, this.phyPolynomials(guardFrom), this.pRePolynomials(i));
                 
-                import lp4.DecVarsAndExpr
-                this.wRes = [this.wRes, DecVarsAndExpr(currentWReSymbolicVars, currentWReExpression)];
+                this.wRes = [this.wRes, lp4.DecVarsAndExpr(currentWReSymbolicVars, currentWReExpression)];
                 
                 [this, this.decvarsIndexes.wReStarts(i), this.decvarsIndexes.wReEnds(i)] = this.addDecisionVars(currentWReSymbolicVars);
             end
@@ -238,8 +231,7 @@ classdef HybridLinearProgram
             % different from LP, the phy is the phy of theta state
             thetaStatePhy = this.phys(this.thetaStateIndex);
             constraint1 = -thetaStatePhy;
-            import lp4.Lp4Config
-            de = computeDegree(constraint1, this.indvars) + Lp4Config.C_DEGREE_INC;
+            de = computeDegree(constraint1, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
             
             c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
@@ -286,8 +278,7 @@ classdef HybridLinearProgram
                 end
                 
                 constraint2 = -phy_d + this.wLambdaExpressions(i) + this.eps(1);
-                import lp4.Lp4Config
-                de = computeDegree(constraint2, this.indvars) + Lp4Config.C_DEGREE_INC;
+                de = computeDegree(constraint2, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_gama_delta', num2str(i), '_');
                 c_gama_delta = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
@@ -340,9 +331,7 @@ classdef HybridLinearProgram
                 end
                 
                 constraintGuard = constraintGuard + this.wReExpressions(i);
-                
-                import lp4.Lp4Config
-                de = computeDegree(constraintGuard, this.indvars) + Lp4Config.C_DEGREE_INC;
+                de = computeDegree(constraintGuard, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_guard', num2str(i), '_');
                 c_guard = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
@@ -378,9 +367,7 @@ classdef HybridLinearProgram
                 expr.b = [];
                 
                 constraintRe = - (this.pRePolynomials(i).expression);
-                
-                import lp4.Lp4Config
-                de = computeDegree(constraintRe, this.indvars) + Lp4Config.C_DEGREE_INC;
+                de = computeDegree(constraintRe, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_re', num2str(i), '_');
                 c_re = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
@@ -418,8 +405,7 @@ classdef HybridLinearProgram
                 
                 zetaStatePhy = this.phys(zeta.stateIndex);
                 constraint3 = zetaStatePhy + this.eps(2); % different from lp2
-                import lp4.Lp4Config
-                de = computeDegree(constraint3, this.indvars) + Lp4Config.C_DEGREE_INC;
+                de = computeDegree(constraint3, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_u_v', num2str(zetaIndex));
                 c_u_v = sym(name,[1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
@@ -436,15 +422,7 @@ classdef HybridLinearProgram
         end
         
         function this = generateEqsForSafetyConstraints(this)
-            for k = 1 : length(this.exprs)
-                % skip empty constraint
-                if this.exprs(k).isEmptyConstraint() || this.exprs(k).isEqGenerated()
-                    continue;
-                end
-                
-                [ this.exprs(k).A, this.exprs(k).b ] = eqgenerate( this.indvars, this.decvars, this.exprs(k).polyexpr);
-                disp(['constraint ',this.exprs(k).name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
-            end
+            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
         end
         
         function this = setDecVarsConstraint(this)
@@ -526,12 +504,10 @@ classdef HybridLinearProgram
                         pLambdaPartition = this.pLambdaPartitions(j, i2);
                         w = wSymbolicVars(i1, i2);
                         
-                        import lp4.createOverApproximationAsConstraintsWithRou
-                        constraints = createOverApproximationAsConstraintsWithRou(p, pPartition, pLambda, pLambdaPartition, w, this.rouVar);
+                        constraints = lp4.createOverApproximationAsConstraintsWithRou(p, pPartition, pLambda, pLambdaPartition, w, this.rouVar);
                         
                         % save expressions for debug
-                        import lp4.Lp4Config
-                        if Lp4Config.isDebug()
+                        if lp4.Lp4Config.isDebug()
                             expr.polyexpr = [expr.polyexpr constraints];
                         end
                         
@@ -571,12 +547,10 @@ classdef HybridLinearProgram
                         pRePartition = this.pRePartitions(j, i2);
                         w = wReSymbolicVars(i1, i2);
                         
-                        import lp4.createOverApproximationAsConstraintsWithRou
-                        constraints = createOverApproximationAsConstraintsWithRou(p, pPartition, pRe, pRePartition, w, this.rouVar);
+                        constraints = lp4.createOverApproximationAsConstraintsWithRou(p, pPartition, pRe, pRePartition, w, this.rouVar);
                         
                         % save expressions for debug
-                        import lp4.Lp4Config
-                        if Lp4Config.isDebug()
+                        if lp4.Lp4Config.isDebug()
                             expr.polyexpr = [expr.polyexpr constraints];
                         end
                         
@@ -654,11 +628,9 @@ classdef HybridLinearProgram
             [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq);
             time = toc;
             
-            import lp4.HybridLinearProgramSolveRes
-            solveRes = HybridLinearProgramSolveRes(this, x, fval, flag, time);
+            solveRes = lp4.HybridLinearProgramSolveRes(this, x, fval, flag, time);
             
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
+            if lp4.Lp4Config.isDebug()
                 solveRes.printSolution();
             end
             
@@ -680,9 +652,7 @@ classdef HybridLinearProgram
             end
             
             % verify
-            
-            import lp4.HybridLinearProgramVerificationWithGivenLambdaAndRe
-            lpVer = HybridLinearProgramVerificationWithGivenLambdaAndRe.create(lp.indvars, lp.stateNum,...
+            lpVer = lp4.HybridLinearProgramVerificationWithGivenLambdaAndRe.create(lp.indvars, lp.stateNum,...
                 lp.fs, lp.eps, lp.thetaStateIndex, lp.theta, lp.psys, lp.zetas, lp.guards, lp.degree,...
                 solveRes.getPLmabdaExpressions(), solveRes.getPReExpressions());
             
@@ -697,8 +667,7 @@ classdef HybridLinearProgram
                 % disp(resNorms);
             end
             
-            import lp4.Lp4Config
-            Lp4Config.displayDelimiterLine();
+            lp4.Lp4Config.displayDelimiterLine();
         end
         
         function [lpVer, solveResVer, resNorms] = verifyWithPhy(lp, solveRes)
@@ -711,9 +680,7 @@ classdef HybridLinearProgram
             end
             
             % verify
-            
-            import lp4.HybridLinearProgramVerificationWithGivenPhy
-            lpVer = HybridLinearProgramVerificationWithGivenPhy.create(lp.indvars, lp.stateNum,...
+            lpVer = lp4.HybridLinearProgramVerificationWithGivenPhy.create(lp.indvars, lp.stateNum,...
                 lp.fs, lp.eps, lp.thetaStateIndex, lp.theta, lp.psys, lp.zetas, lp.guards, lp.pLambdaDegree, lp.pReDegree,...
                 solveRes.getPhyExpressions());
             
@@ -723,12 +690,10 @@ classdef HybridLinearProgram
                 disp('Verify feasible solution failed.');
             else
                 disp('Verify feasible solution succeed, norms :');
-                % FIXME `resNorms` is empty
-                % disp(resNorms);
+                disp(resNorms);
             end
             
-            import lp4.Lp4Config
-            Lp4Config.displayDelimiterLine();
+            lp4.Lp4Config.displayDelimiterLine();
         end
         
         function res = getPhyCoefficientStart(this, i)
@@ -794,15 +759,13 @@ classdef HybridLinearProgram
         function hlp = create(indvarsArg, stateNum,...
                 fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree,...
                 phyRange, pLambdaRange, pReRange)
-            import lp4.HybridLinearProgram
-            hlp = HybridLinearProgram(indvarsArg, stateNum, size(guards, 2));
+            hlp = lp4.HybridLinearProgram(indvarsArg, stateNum, size(guards, 2));
             hlp = hlp.init(fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree, phyRange, pLambdaRange, pReRange);
         end
         
         function hlp = createWithoutRanges(indvarsArg, stateNum,...
                 fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree)
-            import lp4.HybridLinearProgram
-            hlp = HybridLinearProgram(indvarsArg, stateNum, size(guards, 2));
+            hlp = lp4.HybridLinearProgram(indvarsArg, stateNum, size(guards, 2));
             hlp = hlp.initWithoutRanges(fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree);
         end
         

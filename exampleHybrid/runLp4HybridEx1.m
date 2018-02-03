@@ -7,13 +7,13 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, stateNum, fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta, guards] = getLp4HybridEx1Problem();
+[vars, stateNum, fs, eps, thetaStateIndex, theta, psys, zetas, guards] = getLp4HybridEx1Problem();
 
 
 % Set the degree of phy, lambda and re
-degree = 2;
-pLambdaDegree = 2;
-pReDegree = 2;
+degree = 1;
+pLambdaDegree = 1;
+pReDegree = 1;
 
 
 import lp4util.Partition
@@ -26,7 +26,7 @@ phyRangeInVerify = Partition(-10, 10);
 
 import lp4.HybridLinearProgram
 hlp = HybridLinearProgram.create(vars, stateNum,...
-fs, eps, thetaStateIndex, zetaStateIndex, theta, psys, zeta,guards, degree, pLambdaDegree, pReDegree,...
+fs, eps, thetaStateIndex, theta, psys, zetas, guards, degree, pLambdaDegree, pReDegree,...
 phyRange, pLambdaRange, pReRange);
 
 [hlp, solveRes] = hlp.solve();

@@ -85,8 +85,7 @@ classdef LinearProgram4Verification2 < lp4.LinearProgram4VerificationBase
             expr.b = [];
             
             constraint1 = -this.phy;
-            import lp4.Lp4Config
-            de = computeDegree(constraint1, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
+            de = computeDegree(constraint1, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
@@ -122,8 +121,7 @@ classdef LinearProgram4Verification2 < lp4.LinearProgram4VerificationBase
             end
             
             constraint2 = -phy_d + this.phy * this.lambda + this.eps(1);
-            import lp4.Lp4Config
-            de = computeDegree(constraint2, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
+            de = computeDegree(constraint2, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
             [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
@@ -154,8 +152,7 @@ classdef LinearProgram4Verification2 < lp4.LinearProgram4VerificationBase
             expr.b = [];
             
             constraint3 = this.phy + this.eps(2); % different from lp2
-            import lp4.Lp4Config;
-            de = computeDegree(constraint3, this.indvars) + Lp4Config.VERIFICATION_C_DEGREE_INC;
+            de = computeDegree(constraint3, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
             
             c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
             [constraintDecvars, expression] = constraintExpression(de,zeta,c_u_v);
@@ -170,14 +167,7 @@ classdef LinearProgram4Verification2 < lp4.LinearProgram4VerificationBase
         end
         
         function this = generateEqsForConstraint1To3(this)
-            for k = 1 : 1 : 3
-                if this.exprs(k).isEmptyConstraint()
-                    continue;
-                end
-                
-                [ this.exprs(k).A, this.exprs(k).b ] = eqgenerate( this.indvars, this.decvars, this.exprs(k).polyexpr);
-                disp(['constraint ',this.exprs(k).name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
-            end
+            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
         end
         
         function this = setPhyConstraint(this)
@@ -254,8 +244,7 @@ classdef LinearProgram4Verification2 < lp4.LinearProgram4VerificationBase
             
             solveRes = this.createSolveRes(x, fval, flag, time);
             
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
+            if lp4.Lp4Config.isDebug()
                 solveRes.printSolution();
             end
             

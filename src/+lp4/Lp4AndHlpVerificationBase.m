@@ -14,7 +14,7 @@ classdef (Abstract) Lp4AndHlpVerificationBase
     
     methods
         
-         function [this, startIndex, endIndex] = addDecisionVars(this, decvars)
+        function [this, startIndex, endIndex] = addDecisionVars(this, decvars)
             % addDecisionVars add decision variables.
             %
             % lp is a linear program.
@@ -72,7 +72,7 @@ classdef (Abstract) Lp4AndHlpVerificationBase
         
         function [this, solveRes, resNorms] = solveWithLinprog(this)
             
-            [Aeq, beq, Aie, bie] = collectEqsAndIes(this);
+            [Aeq, beq, Aie, bie] = this.collectEqsAndIes();
             
             if ~lp4.Lp4Config.IS_SET_LINPROG_LOWERBOUND
                 tic;
@@ -102,7 +102,7 @@ classdef (Abstract) Lp4AndHlpVerificationBase
         
         function [this, solveRes, resNorms] = solveWithCvx(this)
             
-            [Aeq, beq, Aie, bie] = collectEqsAndIes(this);
+            [Aeq, beq, Aie, bie] = this.collectEqsAndIes();
             
             if ~this.isAttachRou % if we do not need to minimize rou (not use linprogF)
                 
@@ -159,5 +159,53 @@ classdef (Abstract) Lp4AndHlpVerificationBase
         solveRes = createSolveRes(this, x, fval, flag, time)
         
     end
+    
+    methods (Static)
+        
+		function this = generateConstraintEqs(this)
+            
+            indVars = this.indvars;
+            decVars = this.decvars;
+            
+            for expr = this.exprs;
+			
+                % skip non `eq` / empty constraint
+                if ~strcmp(expr.type, 'eq') || expr.isEmptyConstraint() || expr.isEqGenerated()
+                    continue;
+                end
+                
+                [ expr.A, expr.b ] = eqgenerate(indVars, decVars, expr.polyexpr);
+                disp(['constraint ', expr.name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
+                
+                 this.exprs(i) = expr;
+            end % for
+        end % generateConstraintEqs
+		
+        function this = generateConstraintEqsParallelly(this)
+            % 并行化 eqgenerate （对于每个约束，根据系数相等生成等式约束）
+            
+            % Note: Matlab 不允许 parfor 循环中出现形如 this.expr(1) 的变量
+            indVars = this.indvars;
+            decVars = this.decvars;
+            % Note: 输出数组不可赋值为`[]`，否则报错 索引超出矩阵维度：
+            outExprs = this.exprs;
+            
+            parfor i = 1 : length(this.exprs)
+                expr = outExprs(i);
+                % skip non `eq` / empty constraint
+                if ~strcmp(expr.type, 'eq') || expr.isEmptyConstraint() || expr.isEqGenerated()
+                    continue;
+                end
+                
+                [ expr.A, expr.b ] = eqgenerate(indVars, decVars, expr.polyexpr);
+                disp(['constraint ', expr.name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
+                
+                outExprs(i) = expr;
+            end % parfor
+            
+            this.exprs = outExprs;
+        end % generateConstraintEqsParallelly
+        
+    end % methods (Static)
     
 end

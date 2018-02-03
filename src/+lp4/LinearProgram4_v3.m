@@ -139,10 +139,9 @@ classdef LinearProgram4_v3
             expr.b = [];
             
             constraint1 = -this.phy;
-            import lp4.Lp4Config
-            de = computeDegree(constraint1, this.indvars) + Lp4Config.C_DEGREE_INC;
+            de = computeDegree(constraint1, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
             
-            c_alpha_beta = sym('c_alpha_beta', [1,10000]); % pre-defined varibales, only a few of them are the actual variables
+            c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
             this = this.addDecisionVars(constraintDecvars);
             
@@ -180,10 +179,9 @@ classdef LinearProgram4_v3
             end
             
             constraint2 = -phy_d + this.wExpression + this.eps(1);
-            import lp4.Lp4Config
-            de = computeDegree(constraint2, this.indvars) + Lp4Config.C_DEGREE_INC;
+            de = computeDegree(constraint2, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
             
-            c_gama_delta = sym('c_gama_delta',[1, 1000 * 1000]);
+            c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
             [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
             this = this.addDecisionVars(constraintDecvars);
             
@@ -214,10 +212,9 @@ classdef LinearProgram4_v3
             expr.b = [];
             
             constraint3 = this.phy + this.eps(2); % different from lp2
-            import lp4.Lp4Config
-            de = computeDegree(constraint3, this.indvars) + Lp4Config.C_DEGREE_INC;
+            de = computeDegree(constraint3, this.indvars) + lp4.Lp4Config.C_DEGREE_INC;
             
-            c_u_v = sym('c_u_v',[1,10000]);
+            c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
             [constraintDecvars, expression] = constraintExpression(de, zeta, c_u_v);
             this = this.addDecisionVars(constraintDecvars);
             
@@ -230,14 +227,7 @@ classdef LinearProgram4_v3
         end
         
         function this = generateEqsForConstraint1To3(this)
-            for k = 1 : 1 : 3
-                if this.exprs(k).isEmptyConstraint()
-                    continue;
-                end
-                
-                [ this.exprs(k).A, this.exprs(k).b ] = eqgenerate( this.indvars, this.decvars, this.exprs(k).polyexpr);
-                disp(['constraint ',this.exprs(k).name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
-            end
+            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
         end
         
         function this = setDevVarsConstraint(this)
@@ -298,8 +288,7 @@ classdef LinearProgram4_v3
                         p, pPartition, pLambda, pLambdaPartition, w, this.rouVar);
                     
                     % save expressions for debug
-                    import lp4.Lp4Config
-                    if Lp4Config.isDebug()
+                    if lp4.Lp4Config.isDebug()
                         expr.polyexpr = [expr.polyexpr constraints];
                     end
                     
@@ -352,8 +341,7 @@ classdef LinearProgram4_v3
             import lp4.LinearProgram4SolveResult
             solveRes = LinearProgram4SolveResult(this, x, fval, flag, time);
             
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
+            if lp4.Lp4Config.isDebug()
                 solveRes.printSolution();
             end
             
@@ -399,8 +387,7 @@ classdef LinearProgram4_v3
             import lp4.LinearProgram4SolveResult
             solveRes = LinearProgram4SolveResult(this, x, fval, flag, time);
             
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
+            if lp4.Lp4Config.isDebug()
                 solveRes.printSolution();
             end
             
@@ -435,8 +422,7 @@ classdef LinearProgram4_v3
                 disp(resNorms);
             end
             
-            import lp4.Lp4Config
-            Lp4Config.displayDelimiterLine();
+            lp4.Lp4Config.displayDelimiterLine();
         end
         
         function [lpVer, solveResVer, resNorms] = verifyWithPhy(lp, solveRes)
@@ -462,8 +448,7 @@ classdef LinearProgram4_v3
                 disp(resNorms);
             end
             
-            import lp4.Lp4Config
-            Lp4Config.displayDelimiterLine();
+            lp4.Lp4Config.displayDelimiterLine();
         end
         
         function res = getPhyCoefficientStart(this)
@@ -499,36 +484,17 @@ classdef LinearProgram4_v3
     methods (Static)
         
         function lp = createLp(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange)
-            import lp4.LinearProgram4_v3
-            lp = LinearProgram4_v3(vars);
+            lp =  lp4.LinearProgram4_v3(vars);
             lp = lp.initLp(f, eps, theta, psy, zeta, degree, pLambdaDegree, phyRange, pLambdaRange);
         end
         
         function lp = createLpWithoutRanges(vars, f, eps, theta, psy, zeta, degree, pLambdaDegree)
-            import lp4.LinearProgram4_v3
-            lp = LinearProgram4_v3(vars);
+            lp = lp4.LinearProgram4_v3(vars);
             lp = lp.initLpWithoutRanges(f, eps, theta, psy, zeta, degree, pLambdaDegree);
         end
         
         function [wSymbolicVars, wExpression] = createWExpression(pPolynomial, pLambdaPolynomial)
-            wSymbolicVars = sym('w', [length(pPolynomial.coefficientVars), length(pLambdaPolynomial.coefficientVars)]);
-            wExpression = pPolynomial.expression * pLambdaPolynomial.expression;
-            
-            wExpression = expand(wExpression); % feval(symengine, 'expand', wExpression);
-            
-            % wExpression = collect(wExpression);
-            % wExpression = feval(symengine, 'collect', wExpression,...
-            % converttochar([pPolynomial.symbolicVars, pLambdaPolynomial.symbolicVars]));
-            
-            for i = 1 : 1 : length(pPolynomial.coefficientVars)
-                for j = 1 : 1 : length(pLambdaPolynomial.coefficientVars)
-                    % replace `p_i * pLambda_j` with `w_i_j`
-                    iSymbol = pPolynomial.coefficientVars(i);
-                    jSymbol = pLambdaPolynomial.coefficientVars(j);
-                    wSymbol = wSymbolicVars(i, j);
-                    wExpression = subs(wExpression, iSymbol * jSymbol, wSymbol);
-                end
-            end
+            [wSymbolicVars, wExpression] = lp4.HybridLinearProgram.createWExpression('w', pPolynomial, pLambdaPolynomial);
         end % function createWExpression
         
     end % methods (Static)

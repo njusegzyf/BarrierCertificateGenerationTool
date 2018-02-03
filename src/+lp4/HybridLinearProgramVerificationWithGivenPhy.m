@@ -320,15 +320,7 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
         end
         
         function this = generateEqsForSafetyConstraints(this)
-            for k = 1 : length(this.exprs)
-                % skip empty constraint
-                if this.exprs(k).isEmptyConstraint() || this.exprs(k).isEqGenerated()
-                    continue;
-                end
-                
-                [ this.exprs(k).A, this.exprs(k).b ] = eqgenerate( this.indvars, this.decvars, this.exprs(k).polyexpr);
-                disp(['constraint ',this.exprs(k).name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
-            end
+            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
         end
         
         function this = setDecVarsConstraint(this)

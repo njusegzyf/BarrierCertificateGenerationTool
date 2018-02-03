@@ -136,10 +136,7 @@ classdef LinearProgram4Verification3 < lp4.LinearProgram4VerificationBase
         end
         
         function this = generateEqsForConstraint1To3(this)
-            for k = 1 : 1 : 3
-                [ this.exprs(k).A, this.exprs(k).b ] = eqgenerate( this.indvars, this.decvars, this.exprs(k).polyexpr);
-                disp(['constraint ',this.exprs(k).name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
-            end
+            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
         end
         
         function this = setDevVarsConstraint(this)
@@ -190,8 +187,7 @@ classdef LinearProgram4Verification3 < lp4.LinearProgram4VerificationBase
             
             solveRes = lp4.LinearProgram4Verification3SolveResult(this, x, fval, flag, time);
             
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
+            if lp4.Lp4Config.isDebug()
                 solveRes.printSolution();
             end
             
