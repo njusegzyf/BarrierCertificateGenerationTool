@@ -85,6 +85,9 @@ classdef (Abstract) Lp4AndHlpVerificationBase
                 time = toc;
             end
             
+            if lp4.Lp4Config.IS_DROP_NEGATIVE_C
+                x = this.dropNegativeC(x);
+            end
             solveRes = this.createSolveRes(x, fval, flag, time);
             
             import lp4.Lp4Config
@@ -131,6 +134,9 @@ classdef (Abstract) Lp4AndHlpVerificationBase
                 
             end
             
+            if lp4.Lp4Config.IS_DROP_NEGATIVE_C
+                x = this.dropNegativeC(x);
+            end
             solveRes = this.createCvxSolveRes(x, cvx_optval, cvx_status, cvx_cputime);
             
             import lp4.Lp4Config
@@ -150,6 +156,15 @@ classdef (Abstract) Lp4AndHlpVerificationBase
             cvxSolveRes = lp4.HybridLinearProgramCvxVerificationSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime);
         end
         
+        function x = dropNegativeC(this, x)
+            xLen = length(x);
+            for i = this.getCStart() : xLen 
+                if x(i) < 0 
+                    x(i) = 0;
+                end
+            end
+        end
+        
     end
     
     methods (Abstract)
@@ -157,6 +172,8 @@ classdef (Abstract) Lp4AndHlpVerificationBase
         res = getRouIndex(this)
         
         solveRes = createSolveRes(this, x, fval, flag, time)
+        
+        res = getCStart(this)
         
     end
     
@@ -167,8 +184,9 @@ classdef (Abstract) Lp4AndHlpVerificationBase
             indVars = this.indvars;
             decVars = this.decvars;
             
-            for expr = this.exprs;
-			
+            for i = 1 : length(this.exprs) 
+			    expr = this.exprs;
+
                 % skip non `eq` / empty constraint
                 if ~strcmp(expr.type, 'eq') || expr.isEmptyConstraint() || expr.isEqGenerated()
                     continue;

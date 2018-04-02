@@ -1,4 +1,4 @@
-function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4NewExampleC4Problem()
+function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4NewExampleC6Problem()
 
 % independent variables
 syms x1 x2;

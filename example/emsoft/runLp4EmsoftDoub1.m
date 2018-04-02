@@ -1,4 +1,4 @@
-function [lpVer, solveResVer, resNorms] = runLp4Example3WithIterations1()
+function [lpVer, solveResVer, resNorms] = runLp4EmsoftDoub1()
 
 clear;
 echo on;
@@ -8,16 +8,19 @@ echo on;
 warning('off')
 
 % get the problem
-[vars, f, eps, theta, psy, zeta] = getLp4Example3Problem();
-x = vars(1);
-y = vars(2);
+[vars, f, eps, theta, psy, zeta] = getLp4EmsoftDoub1Problem();
+
+x1 = vars(1);
+x2 = vars(2);
 
 degree = 2;
 pLambdaDegree = 1;
 
 maxIterations = lp4.Lp4Config.DEFAULT_MAX_ITERATION_COUNT;
 
-initPhy = (66853*x*y)/8796093022208 + (2117713*x^2)/8796093022208 - (1394370808931*y^2)/17592186044416;
+initPhy = 120.5197041-104.9906*x1-37.8830*x2+41.0652*x1^2+2.1159*x2^2-25.5826*x1*x2;
+% when add eps2 to theta, for pLambdaDegree = 1, min rou : 1.6332e-05
+% when add eps2 to theta, for pLambdaDegree = 0, min rou : 1.7307e-05
 
 
 

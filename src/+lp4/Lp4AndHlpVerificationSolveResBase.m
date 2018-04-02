@@ -52,6 +52,28 @@ classdef Lp4AndHlpVerificationSolveResBase < lp4util.SolveResBase
                 res(i) = this.computeExprNorm(i);
             end
         end
+        
+        function expr = computeEq1Right(this, indvarValues) 
+            lp = this.linearProgram;
+            expr = lp.exprs(1).polyexpr + lp.phy;
+            
+            decvarLen = length(lp.decvars);
+            for i = 1 : decvarLen
+                decvar = lp.decvars(i);
+                decvarValue = this.x(i);
+                expr = subs(expr, decvar, decvarValue);
+            end
+            
+            indvarLen = length(lp.indvars);
+            for i = 1 : indvarLen
+                indvar = lp.indvars(i);
+                indvarValue = indvarValues(i);
+                expr = subs(expr, indvar, indvarValue);
+            end
+            
+            expr = vpa(expr);
+        end
+        
     end
 end
 

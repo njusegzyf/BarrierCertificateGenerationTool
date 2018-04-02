@@ -17,7 +17,7 @@ x2 = vars(2);
 degree = 2;
 pLambdaDegree = 1;
 
-maxIterations = 10;
+maxIterations = lp4.Lp4Config.DEFAULT_MAX_ITERATION_COUNT;
 
 initPhy = (66853*x1*x2)/8796093022208 + (2117713*x1^2)/8796093022208 - (1394370808931*x2^2)/17592186044416;
 

@@ -61,84 +61,6 @@ classdef LinearProgram4Verification3 < lp4.LinearProgram4VerificationBase
             end
         end
         
-        function this = setThetaConstraint(this, thetaVars)
-            expr = Constraint();
-            expr.num = length(this.exprs) + 1;
-            expr.name = 'theta';
-            expr.type = 'eq';
-            expr.A = [];
-            expr.b = [];
-            
-            constraint1 = -this.phy;
-            de = computeDegree(constraint1, this.indvars);
-            
-            c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
-            [constraintDecvars, expression] = constraintExpression(de, thetaVars, c_alpha_beta);
-            this = this.addDecisionVars(constraintDecvars);
-            this.c1Length = length(constraintDecvars);
-            
-            constraint1 = constraint1 + expression;
-            expr.polyexpr = constraint1;
-            
-            this.exprs = [this.exprs expr];
-        end
-        
-        % This is the main difference from `LinearProgram4`.
-        function this = setPsyConstraint(this, psyVars)
-            expr = Constraint();
-            expr.num = length(this.exprs) + 1;
-            expr.name = 'psy';
-            expr.type = 'eq';
-            expr.A = [];
-            expr.b = [];
-            
-            phy_d = 0;
-            for k = 1 : 1 : length(this.indvars)
-                phy_d = phy_d + diff(this.phy, this.indvars(k)) * this.f(k);
-            end
-            
-            constraint2 = -phy_d + this.phy * this.lambda + this.eps(1);
-            de = computeDegree(constraint2, this.indvars);
-            
-            c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-            [constraintDecvars, expression] = constraintExpression(de, psyVars, c_gama_delta);
-            this = this.addDecisionVars(constraintDecvars);
-            this.c2Length = length(constraintDecvars);
-            
-            constraint2 = constraint2 + expression;
-            
-            expr.polyexpr = constraint2;
-            
-            this.exprs = [this.exprs expr];
-        end
-        
-        function this = setZetaConstraint(this, zetaVars)
-            expr = Constraint();
-            expr.num = length(this.exprs) + 1;
-            expr.name = 'zeta';
-            expr.type = 'eq';
-            expr.A = [];
-            expr.b = [];
-            
-            constraint3 = this.phy + this.eps(2); % different from lp2
-            de = computeDegree(constraint3, this.indvars);
-            
-            c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-            [constraintDecvars, expression] = constraintExpression(de,zetaVars,c_u_v);
-            this = this.addDecisionVars(constraintDecvars);
-            this.c3Length = length(constraintDecvars);
-            
-            constraint3 = constraint3 + expression;
-            
-            expr.polyexpr = constraint3;
-            
-            this.exprs = [this.exprs expr];
-        end
-        
-        function this = generateEqsForConstraint1To3(this)
-            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
-        end
-        
         function this = setDevVarsConstraint(this)
             decexpr = Constraint();
             decexpr.num = length(this.exprs) + 1;
@@ -165,39 +87,6 @@ classdef LinearProgram4Verification3 < lp4.LinearProgram4VerificationBase
             this.exprs = [this.exprs decexpr];
         end % function setDevVarsConstraint
         
-        function [this, solveRes, resNorms] = solve(this)
-            Aeq = [];
-            beq = [];
-            Aie = [];
-            bie = [];
-            
-            for k = 1 : 1 : length(this.exprs)
-                if this.exprs(k).type == 'eq'
-                    Aeq = [Aeq; this.exprs(k).A];
-                    beq = [beq; this.exprs(k).b];
-                else
-                    Aie = [Aie; this.exprs(k).A];
-                    bie = [bie; this.exprs(k).b];
-                end
-            end
-            
-            tic;
-            [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq);
-            time = toc;
-            
-            solveRes = lp4.LinearProgram4Verification3SolveResult(this, x, fval, flag, time);
-            
-            if lp4.Lp4Config.isDebug()
-                solveRes.printSolution();
-            end
-            
-            if solveRes.hasSolution()
-                resNorms = solveRes.computeAllExprsNorms();
-            else
-                resNorms = [];
-            end
-        end % function solve
-        
         function res = getLambdaCoefficientStart(this)
             res = 1;
         end
@@ -223,6 +112,10 @@ classdef LinearProgram4Verification3 < lp4.LinearProgram4VerificationBase
         
         function solveRes = createSolveRes(this, x, fval, flag, time)
             solveRes = lp4.LinearProgram4Verification3SolveResult(this, x, fval, flag, time);
+        end
+        
+        function res = getCStart(this)
+            res = this.getC1Start();
         end
         
     end % methods

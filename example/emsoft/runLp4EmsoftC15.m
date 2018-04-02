@@ -1,4 +1,4 @@
-function [lpVer, solveResVer, resNorms] = runLp4Example3WithIterations1()
+function [lpVer, solveResVer, resNorms] = runLp4EmsoftC15()
 
 clear;
 echo on;
@@ -8,16 +8,18 @@ echo on;
 warning('off')
 
 % get the problem
-[vars, f, eps, theta, psy, zeta] = getLp4Example3Problem();
-x = vars(1);
-y = vars(2);
+[vars, f, eps, theta, psy, zeta] = getLp4EmsoftC15Problem();
+
+x1 = vars(1);
+x2 = vars(2);
 
 degree = 2;
-pLambdaDegree = 1;
+pLambdaDegree = 0;
 
 maxIterations = lp4.Lp4Config.DEFAULT_MAX_ITERATION_COUNT;
 
-initPhy = (66853*x*y)/8796093022208 + (2117713*x^2)/8796093022208 - (1394370808931*y^2)/17592186044416;
+initPhy = -45.9413122+45.5632*x1+72.6040*x2+26.2659*x1*x2-11.6836*x1^2-18.3213*x2^2;
+% when add eps2 to theta, min rou : 1.7971e-05
 
 
 

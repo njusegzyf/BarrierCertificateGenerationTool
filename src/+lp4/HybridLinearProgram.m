@@ -2,7 +2,7 @@ classdef HybridLinearProgram
     
     properties
         indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
-        degree % 问题1中的带求发多项式函数φ的次数，类型为正整数
+        degree % 问题1中的待求多项式函数φ的次数，类型为正整数
         
         stateNum
         thetaStateIndex
