@@ -18,6 +18,16 @@ classdef HybridLinearProgramVerificationSolveResBase < lp4.Lp4AndHlpVerification
             end
         end
         
+%         function res = getRou(this)
+%             if this.linearProgram.isAttachRou
+%                 % as we set linprogF = rou, so we can directly return fval
+%                 res = this.fval;
+%                 % res = this.x(this.linearProgram.decvarsIndexes.rouIndex);
+%             else
+%                 error('Rou is not used.')
+%             end
+%         end
+
         function res = getCGuardCoefficient(this, i)
             decvarIndexes = this.linearProgram.decvarsIndexes;
             res = this.x(decvarIndexes.cGuardStarts(i):  decvarIndexes.cGuardEnds(i));

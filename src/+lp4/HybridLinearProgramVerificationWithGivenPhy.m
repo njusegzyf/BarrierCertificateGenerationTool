@@ -319,10 +319,6 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
             end
         end
         
-        function this = generateEqsForSafetyConstraints(this)
-            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
-        end
-        
         function this = setDecVarsConstraint(this)
             exprNum = this.nextExprNumIndex();
             
@@ -351,6 +347,11 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
             this.exprs(exprNum) = expr;
         end % function setDecVarsConstraint
         
+        % override
+        function solveRes = createSolveRes(this, x, fval, flag, time)
+            solveRes = lp4.HybridLinearProgramVerificationWithGivenPhySolveRes(this, x, fval, flag, time);
+        end
+        
         function res = getPLambdaCoefficientStart(this, i)
             res = this.decvarsIndexes.lambdaStarts(i);
         end
@@ -365,14 +366,6 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
         
         function res = getPReCoefficientEnd(this, i)
             res = this.decvarsIndexes.reEnds(i);
-        end
-        
-        function res = nextExprNumIndex(this)
-            res = length(this.exprs) + 1;
-        end
-        
-        function solveRes = createSolveRes(this, x, fval, flag, time)
-            solveRes = lp4.HybridLinearProgramVerificationWithGivenPhySolveRes(this, x, fval, flag, time);
         end
         
     end % methods

@@ -26,24 +26,6 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
             this.time = timeArg;
         end
         
-        function res = hasSolution(this)
-            res = (this.exitflag == 1);
-        end
-        
-        function res = hasSolutionWithRou(this)
-            res = this.exitflag == 1 && this.getRou() <= 0;
-        end
-        
-        function res = getRou(this)
-            if this.linearProgram.isAttachRou
-                % as we set linprogF = rou, so we can directly return fval
-                res = this.fval;
-                % res = this.x(this.linearProgram.decvarsIndexes.rouIndex);
-            else
-                error('Rou is not used.')
-            end
-        end
-        
         function res = getPhyCoefficient(this, i)
             res = this.x(this.linearProgram.getPhyCoefficientStart(i) : this.linearProgram.getPhyCoefficientEnd(i));
             % res = reshape(res, 1, size(res, 1));

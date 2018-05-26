@@ -4,13 +4,12 @@ classdef CvxSolveRes < lp4util.SolveResBase
     end
     
     methods
+        
         function this = CvxSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime)
             %CvxSolveRes 构造此类的实例
             
             exitflag = lp4util.CvxSolveRes.convertCvxStatusToExitflag(cvxStatus);
-            
             this@lp4util.SolveResBase(linearProgram, x, cvxOptval, exitflag, cvxCpuTime);
-            
             this.output = cvxStatus;
         end
         
@@ -34,4 +33,3 @@ classdef CvxSolveRes < lp4util.SolveResBase
         
     end
 end
-

@@ -26,7 +26,6 @@ classdef Lp4AndHlpVerificationSolveResBase < lp4util.SolveResBase
             if this.linearProgram.isAttachRou
                 % as we set linprogF = rou, so we can directly return fval
                 res = this.fval;
-                % res = this.x(this.linearProgram.decvarsIndexes.rouIndex);
             else
                 error('Rou is not used.')
             end

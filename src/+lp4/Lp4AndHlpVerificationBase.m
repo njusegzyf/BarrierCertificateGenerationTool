@@ -8,7 +8,7 @@ classdef (Abstract) Lp4AndHlpVerificationBase
         decvars % 问题中的决策变量
         exprs % 所有的等式/不等式约束
         linprogF % 线性规划的目标函数
-        isAttachRou % 是否在不等式约束中加入 rou，并将 rou 作为目标函数
+        isAttachRou = false; % 是否在不等式约束中加入 rou，并将 rou 作为目标函数
         rouVar
     end
     
@@ -60,6 +60,10 @@ classdef (Abstract) Lp4AndHlpVerificationBase
                     bie = [bie; this.exprs(k).b];
                 end
             end
+        end
+        
+        function this = generateEqsForSafetyConstraints(this)
+            this = lp4.Lp4AndHlpVerificationBase.generateConstraintEqsParallelly(this);
         end
         
         function [this, solveRes, resNorms] = solve(this)
@@ -120,7 +124,7 @@ classdef (Abstract) Lp4AndHlpVerificationBase
                 
             else % if we need to minimize rou (use linprogF)
                 
-                rouIndex = this.decvarsIndexes.rouIndex;
+                rouIndex = this.getRouIndex();
                 
                 cvx_begin
                 
@@ -151,10 +155,6 @@ classdef (Abstract) Lp4AndHlpVerificationBase
             end
             
         end % function solveWithCvx
-        
-        function cvxSolveRes = createCvxSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime)
-            cvxSolveRes = lp4.HybridLinearProgramCvxVerificationSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime);
-        end
         
         function x = dropNegativeC(this, x)
             xLen = length(x);

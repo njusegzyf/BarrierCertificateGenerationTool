@@ -1,5 +1,5 @@
 classdef HybridLinearProgramSolveRes
-    %HybridLinearProgramSolveRes Represents a solve result of a LinearProgram4.
+    %HybridLinearProgramSolveRes Represents a solve result of a HybridLinearProgram.
     
     properties
         linearProgram

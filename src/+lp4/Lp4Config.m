@@ -9,7 +9,7 @@ classdef Lp4Config
         IS_VERIFY_WITH_PHY = true;
         
         % 根据 rou <= ROU_THRESHOLD 判断是否有解
-        ROU_THRESHOLD = 0.0001e-5;
+        ROU_THRESHOLD = 1e-7;
         
         % 检验解时，每个系数向量的 2 范数的阈值
         RES_NORM_THRESHOLD = 1e-8;
@@ -39,7 +39,7 @@ classdef Lp4Config
         IS_SET_LINPROG_LOWERBOUND = true;
         LINPROG_LOWERBOUND = -100000000000000;
         
-        IS_USE_CVX = false;
+        IS_USE_CVX = true;
         
         IS_ADD_EPS_IN_THETA_EXP = true;
         

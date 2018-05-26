@@ -143,10 +143,6 @@ classdef LinearProgram4Verification2 < lp4.LinearProgram4VerificationBase
             solveRes = lp4.LinearProgram4Verification2SolveResult(this, x, fval, flag, time);
         end
         
-        function res = getCStart(this)
-            res = this.getC1Start();
-        end
-        
     end % methods
     
     methods (Static)

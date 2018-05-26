@@ -22,6 +22,19 @@ classdef HybridLinearProgramVerificationBase < lp4.Lp4AndHlpVerificationBase
             res = this.decvarsIndexes.rouIndex;
         end
         
+        % override
+        function res = getCStart(this)
+            res = this.decvarsIndexes.cThetaStart(1);
+        end
+        
+        function res = nextExprNumIndex(this)
+            res = length(this.exprs) + 1;
+        end
+        
+        function cvxSolveRes = createCvxSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime)
+            cvxSolveRes = lp4.HybridLinearProgramCvxVerificationSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime);
+        end
+        
     end % methods
     
     methods (Static)

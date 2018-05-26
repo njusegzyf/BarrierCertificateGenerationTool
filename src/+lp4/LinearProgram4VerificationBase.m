@@ -125,6 +125,10 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
             res = this.rouIndex;
         end
         
+        function res = getCStart(this)
+            res = this.getC1Start();
+        end
+        
         function [constraintDecvars, expression, indexVectors] = getThetaConstraintRightExpr(this, theta)            
             constraint1 = -this.phy;
             de = computeDegree(constraint1, this.indvars);
@@ -152,6 +156,12 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
             
             c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
             [constraintDecvars, expression, indexVectors] = getConstraintExpressionAsVectors(de, zeta, c_u_v);
+        end
+        
+        function cvxSolveRes = createCvxSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime)
+            exitflag = lp4util.CvxSolveRes.convertCvxStatusToExitflag(cvxStatus);
+            cvxSolveRes = linearProgram.createSolveRes(x, cvxOptval, exitflag, cvxCpuTime);
+            cvxSolveRes.output = cvxStatus;
         end
 
     end % methods

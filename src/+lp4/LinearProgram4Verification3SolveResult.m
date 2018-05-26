@@ -55,17 +55,13 @@ classdef LinearProgram4Verification3SolveResult < lp4.Lp4AndHlpVerificationSolve
             
             import lp4.Lp4Config
             if this.hasSolution() || Lp4Config.IS_PRINT_FAILED_VERIFICATION_INFO
-                % diaplay code from lp3
-                disp('--------------------------------------------------------------');
-                disp('The parameter setting:');
-                disp(['lambdaDegree: ', num2str(lp.lambdaDegree),...
-                    '; eps1: ',num2str(lp.eps(1)),...
-                    '; eps2: ',num2str(lp.eps(2))]);
                 
+                % diaplay code from lp3
+                import lp4util.reshapeToVector
                 if (flag == 1)
                     disp('--------------------------------------------------------------');
                     disp('The coefficients of function lambda is:');
-                    disp(this.getLambdaCoefficient());
+                    disp(reshapeToVector(this.getLambdaCoefficient()));
                     disp('--------------------------------------------------------------');
                     disp('The function lambda is:');
                     disp(this.getLambdaExpression());

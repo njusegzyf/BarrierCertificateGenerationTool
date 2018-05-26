@@ -60,6 +60,7 @@ classdef LinearProgram4Verification2SolveResult < lp4.Lp4AndHlpVerificationSolve
             
             import lp4.Lp4Config
             if this.hasSolution() || Lp4Config.IS_PRINT_FAILED_VERIFICATION_INFO
+                
                 % diaplay code from lp3
                 import lp4util.reshapeToVector
                 if (flag == 1)
