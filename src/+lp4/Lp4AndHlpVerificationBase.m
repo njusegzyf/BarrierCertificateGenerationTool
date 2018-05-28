@@ -195,7 +195,7 @@ classdef (Abstract) Lp4AndHlpVerificationBase
                 [ expr.A, expr.b ] = eqgenerate(indVars, decVars, expr.polyexpr);
                 disp(['constraint ', expr.name,' is processed: ',datestr(now,'yyyy-mm-dd HH:MM:SS')]);
                 
-                 this.exprs(i) = expr;
+                this.exprs(i) = expr;
             end % for
         end % generateConstraintEqs
 		

@@ -11,6 +11,7 @@ for iteration = 1 : maxIterations
     lp4.Lp4Config.displayDelimiterLine();
     
     
+    clear lpVer solveResVer resNorms;
     lpVer = lp4.LinearProgram4Verification2.createWithRou(vars, f, eps, theta, psy, zeta, degree, lambda, 0);
     [lpVer, solveResVer, resNorms] = lpVer.solve();
     
@@ -28,6 +29,7 @@ for iteration = 1 : maxIterations
     end
     
     
+    clear lpVer solveResVer resNorms;
     lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, theta, psy, zeta, pLambdaDegree, phy);
     [lpVer, solveResVer, resNorms] = lpVer.solve();
     

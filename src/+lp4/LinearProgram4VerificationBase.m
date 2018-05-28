@@ -15,6 +15,20 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
     
     methods
         
+        function this = LinearProgram4VerificationBase(indvarsArg)
+                        
+            % vars can only be a vector of a matrix of symbolic variables            
+            if ~isa(indvarsArg, 'sym')
+                error('vars is not a vector of a matrix of symbolic variables');
+            end
+            
+            this.indvars = lp4util.reshapeToVector(indvarsArg);
+            
+            this.eps = [];
+            this.f = [];
+            this.decvars = [];
+        end
+        
         function this = setThetaConstraint(this, theta)
             % for an empty constrain
             if isempty(theta)

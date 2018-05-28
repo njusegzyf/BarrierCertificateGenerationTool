@@ -52,25 +52,56 @@ classdef Lp4AndHlpVerificationSolveResBase < lp4util.SolveResBase
             end
         end
         
-        function expr = computeEq1Right(this, indvarValues) 
+        function expr = subAllDecvarValues(this, expr)
             lp = this.linearProgram;
-            expr = lp.exprs(1).polyexpr + lp.phy;
+            decvars = lp.decvars;
+            decvarsLen = length(decvars);
+            decvarValues = this.x;
             
-            decvarLen = length(lp.decvars);
-            for i = 1 : decvarLen
-                decvar = lp.decvars(i);
-                decvarValue = this.x(i);
-                expr = subs(expr, decvar, decvarValue);
+            for i = 1 : decvarsLen
+                expr = subs(expr, decvars(i), decvarValues(i));
+            end
+        end
+        
+        function expr = subAllIndvarValues(this, expr, indvarValues)
+            lp = this.linearProgram;
+            indvars = lp.indvars;
+            indvarsLen = length(indvars);
+            
+            for i = 1 : indvarsLen
+                expr = subs(expr, indvars(i), indvarValues(i));
+            end
+        end
+        
+        function thetaRightExpr = getThetaConstraintRightExpr(this)  
+            lp = this.linearProgram;
+            thetaRightExpr = lp.exprs(1).polyexpr + lp.phy;
+            if lp4.Lp4Config.IS_ADD_EPS_IN_THETA_EXP 
+                thetaRightExpr = thetaRightExpr - lp.eps(2);
             end
             
-            indvarLen = length(lp.indvars);
-            for i = 1 : indvarLen
-                indvar = lp.indvars(i);
-                indvarValue = indvarValues(i);
-                expr = subs(expr, indvar, indvarValue);
-            end
+            thetaRightExpr = this.subAllDecvarValues(thetaRightExpr);
+        end
+        
+        function thetaRightExprValue = computeThetaConstraintRightExprValue(this, indvarValues) 
             
-            expr = vpa(expr);
+            thetaRightExpr = this.getThetaConstraintRightExpr();
+            
+            thetaRightExpr = this.subAllIndvarValues(thetaRightExpr, indvarValues);
+            
+            % vpa(x) uses variable-precision floating-point arithmetic (VPA) to evaluate each element of the symbolic input x 
+            % to at least d significant digits, where d is the value of the digits function. The default value of digits is 32. 
+            thetaRightExprValue = vpa(thetaRightExpr);
+        end
+        
+        function zetaRightExpr = getZetaConstraintRightExpr(this) 
+            lp = this.linearProgram;
+            lpExprs = lp.exprs;
+            % find the zeta constraint by expr name = 'zeta',
+            zetaExpr = lpExprs(find(arrayfun(@(x) strcmp(x.name, 'zeta'), lp.exprs), 1));
+            zetaRightExpr = zetaExpr.polyexpr - lp.phy - lp.eps(2);
+            
+            zetaRightExpr = this.subAllDecvarValues(zetaRightExpr);
         end
         
     end

@@ -1,4 +1,4 @@
-function [lpVer, solveResVer, resNorms] = runLp4NewProblem3()
+function [lpVer, solveResVer, resNorms] = runLp4EmsoftNewProblem3()
 
 clear;
 echo on;

@@ -10,18 +10,9 @@ classdef LinearProgram4Verification3 < lp4.LinearProgram4VerificationBase
     methods
         
         function this = LinearProgram4Verification3(indvarsArg)
-            
-            % vars can only be a vector of a matrix of symbolic variables
-            if ~isa(indvarsArg, 'sym')
-                error('vars is not a vector of a matrix of symbolic variables');
-            end
-            
-            this.indvars = lp4util.reshapeToVector(indvarsArg);
+            this@lp4.LinearProgram4VerificationBase(indvarsArg);
             
             this.lambdaDegree = 0;
-            this.eps = [];
-            this.f = [];
-            this.decvars = [];
         end
         
         function this = init(this, f, eps, theta, psy, zeta, pLambdaDegree, phy)
