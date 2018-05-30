@@ -33,18 +33,7 @@ pLambdaDegree = 0;
 lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, [], psy, [], pLambdaDegree, initPhy);
 [lpVer, solveResVer, resNorms] = lpVer.solve();
 
-if solveResVer.hasSolutionWithRou()
-    disp('Verify feasible solution succeed, norms :');
-    disp(resNorms);
-    return;
-elseif ~(solveResVer.hasSolution())
-    disp('Unable to find lambda and re for an next iteration.');
-    return;
-else
-    disp(['The rou is: ', num2str(solveResVer.getRou())]);
-    lp4.Lp4Config.displayDelimiterLine();
-    % lambda = solveResVer.getLambdaExpression();
-end
+lp4.Lp4Config.printVerifyWithOnlyPsyResult(solveResVer, resNorms);
 
 warning('on')
 

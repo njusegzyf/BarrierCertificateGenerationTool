@@ -11,7 +11,7 @@ function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4EmsoftQuadcopterSuperCle
 % 0<=x1,x2,x3<=1,    98<=x4,x5,x6<=100,  298<=x7<=300,   -300<=x8<=-298,  998<=x9<=1000,  198<=x10<=200,  -200<x11<-198,  198<=x12<=200
 
 % unsafe
-%  -0.18<=xi,i=1..12<=0.18
+% -r <= xi,i=1..12 <= r, r = 0.1 or 0.18
 
 % independent variables
 syms x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12;

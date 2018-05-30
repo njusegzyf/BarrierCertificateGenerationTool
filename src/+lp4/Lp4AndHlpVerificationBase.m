@@ -41,6 +41,32 @@ classdef (Abstract) Lp4AndHlpVerificationBase
             end
         end
         
+        function this = setDevVarsConstraint(this)
+            decexpr = Constraint();
+            decexpr.num = length(this.exprs) + 1;
+            decexpr.name = 'decvarconstraints';
+            decexpr.type = 'ie';
+            decexpr.polyexpr = [];
+            
+            cStartMinus1 = this.getCStart() - 1;
+            cLength = length(this.decvars) - cStartMinus1;
+            decexpr.A = zeros(cLength, length(this.decvars));
+            for k = 1 : 1 : cLength
+                decexpr.A(k, cStartMinus1 + k) = -1;
+            end
+            if this.isAttachRou
+                rouIndex = this.getRouIndex();
+                for k = 1 : cLength
+                    % - rou
+                    decexpr.A(k, rouIndex) = -1;
+                end
+            end
+            bc = zeros(cLength, 1);
+            decexpr.b = bc;
+            
+            this.exprs = [this.exprs decexpr];
+        end % function setDevVarsConstraint
+        
         function [Aeq, beq, Aie, bie] = collectEqsAndIes(this)
             Aeq = [];
             beq = [];
@@ -155,6 +181,10 @@ classdef (Abstract) Lp4AndHlpVerificationBase
             end
             
         end % function solveWithCvx
+        
+        function res = decvarsLen(this)
+            res = length(this.decvars);
+        end
         
         function x = dropNegativeC(this, x)
             xLen = length(x);

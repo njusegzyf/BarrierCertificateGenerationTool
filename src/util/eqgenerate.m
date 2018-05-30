@@ -1,5 +1,5 @@
 function [ Aeq, beq ] = eqgenerate( indvars, decvars, polyexpr)
-%eqgenerate Summary of this function goes here
+% 函数eqgenerate的作用是对包含独立变量的多项式表达式提取决策变量约束，并对决策变量约束获得形如Ax = b中的参数A和b。
 %   indvars: independent variables, such as: x1 x2 ...
 %   decvars: decision variables, such as: p, c_alpha_beta,...
 %   both independent variables and decision variables should be 1-dimension vector

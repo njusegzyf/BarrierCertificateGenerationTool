@@ -6,7 +6,7 @@ function number = monomialNumber(variableNumber, degree)
 %   返回值：number：单项式个数。
 
 number = 0;
-for i = 0:1:degree
+for i = 0 : degree
     % nchoosek(variableNumber+i-1, variableNumber-1) 计算 总次数为 i 时的多项式个数
     % 这个问题是排列组合中的 N个小球放M个盒子，球同，盒不同，允许空箱 问题，用 插板法 可解
     % @see http://chensmiles.blog.163.com/blog/static/121463991200962113136292/

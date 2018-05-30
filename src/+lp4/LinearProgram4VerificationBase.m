@@ -50,10 +50,17 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
                 constraint1 = constraint1 + this.eps(2);
             end
                 
-            de = computeDegree(constraint1, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
+            leftDegree = computeDegree(constraint1, this.indvars);
+            de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
             
-            c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
-            [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
+            if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC) 
+                [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, theta, 'c_alpha_beta');
+            else 
+                % c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
+                c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.getDecVarArraySize(length(theta) * 2, de)]);
+                [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
+            end
+            
             this = this.addDecisionVars(constraintDecvars);
             this.c1Length = length(constraintDecvars);
             
@@ -86,10 +93,17 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
             end
             
             constraint2 = -phy_d + this.phy * this.lambda + this.eps(1);
-            de = computeDegree(constraint2, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
             
-            c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-            [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
+            leftDegree = computeDegree(constraint2, this.indvars);
+            de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
+            
+            if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC) 
+                [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, psy, 'c_gama_delta');
+            else 
+                c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.getDecVarArraySize(length(psy) * 2, de)]);
+                [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
+            end
+            
             this = this.addDecisionVars(constraintDecvars);
             this.c2Length = length(constraintDecvars);
             
@@ -117,10 +131,17 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
             expr.b = [];
             
             constraint3 = this.phy + this.eps(2); % different from lp2
-            de = computeDegree(constraint3, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
             
-            c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-            [constraintDecvars, expression] = constraintExpression(de,zeta,c_u_v);
+            leftDegree = computeDegree(constraint3, this.indvars);
+            de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
+            
+            if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC) 
+                [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, zeta, 'c_u_v');
+            else 
+                c_u_v = sym('c_u_v', [1, lp4.Lp4Config.getDecVarArraySize(length(zeta) * 2, de)]);
+                [constraintDecvars, expression] = constraintExpression(de,zeta,c_u_v);
+            end
+
             this = this.addDecisionVars(constraintDecvars);
             this.c3Length = length(constraintDecvars);
             
@@ -143,35 +164,39 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
             res = this.getC1Start();
         end
         
-        function [constraintDecvars, expression, indexVectors] = getThetaConstraintRightExpr(this, theta)            
-            constraint1 = -this.phy;
-            de = computeDegree(constraint1, this.indvars);
-            
-            c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-            [constraintDecvars, expression, indexVectors] = getConstraintExpressionAsVectors(de, theta, c_alpha_beta);
-        end
-
-        function [constraintDecvars, expression, indexVectors] = getPsyConstraintRightExpr(this, psy)
-            phy_d = 0;
-            for k = 1 : 1 : length(this.indvars)
-                phy_d = phy_d + diff(this.phy, this.indvars(k)) * this.f(k);
-            end
-            
-            constraint2 = -phy_d + this.phy * this.lambda + this.eps(1);
-            de = computeDegree(constraint2, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
-            
-            c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-            [constraintDecvars, expression, indexVectors] = getConstraintExpressionAsVectors(de, psy, c_gama_delta);
-        end
+%         function [constraintDecvars, expression, indexVectors] = getThetaConstraintExpr(this, theta)            
+%             constraint1 = -this.phy;
+%             if lp4.Lp4Config.IS_ADD_EPS_IN_THETA_EXP 
+%                 constraint1 = constraint1 + this.eps(2);
+%             end
+%             de = computeDegree(constraint1, this.indvars);
+%             
+%             c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
+%             [constraintDecvars, expression, indexVectors] = getConstraintExpressionAsVectors(de, theta, c_alpha_beta);
+%         end
+% 
+%         function [constraintDecvars, expression, indexVectors] = getPsyConstraintExpr(this, psy)
+%             phy_d = 0;
+%             for k = 1 : 1 : length(this.indvars)
+%                 phy_d = phy_d + diff(this.phy, this.indvars(k)) * this.f(k);
+%             end
+%             
+%             constraint2 = -phy_d + this.phy * this.lambda + this.eps(1);
+%             de = computeDegree(constraint2, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
+%             
+%             c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
+%             [constraintDecvars, expression, indexVectors] = getConstraintExpressionAsVectors(de, psy, c_gama_delta);
+%         end
+%         
+%         function  [constraintDecvars, expression, indexVectors] = getZetaConstraintExpr(this, zeta)
+%             constraint3 = this.phy + this.eps(2);
+%             de = computeDegree(constraint3, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
+%             
+%             c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
+%             [constraintDecvars, expression, indexVectors] = getConstraintExpressionAsVectors(de, zeta, c_u_v);
+%         end
         
-        function  [constraintDecvars, expression, indexVectors] = getZetaConstraintRightExpr(this, zeta)
-            constraint3 = this.phy + this.eps(2);
-            de = computeDegree(constraint3, this.indvars) + lp4.Lp4Config.VERIFICATION_C_DEGREE_INC;
-            
-            c_u_v = sym('c_u_v', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-            [constraintDecvars, expression, indexVectors] = getConstraintExpressionAsVectors(de, zeta, c_u_v);
-        end
-        
+        % @override
         function cvxSolveRes = createCvxSolveRes(linearProgram, x, cvxOptval, cvxStatus, cvxCpuTime)
             exitflag = lp4util.CvxSolveRes.convertCvxStatusToExitflag(cvxStatus);
             cvxSolveRes = linearProgram.createSolveRes(x, cvxOptval, exitflag, cvxCpuTime);

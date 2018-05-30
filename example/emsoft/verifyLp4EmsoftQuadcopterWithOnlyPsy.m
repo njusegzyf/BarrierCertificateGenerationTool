@@ -31,20 +31,21 @@ pLambdaDegree = 0;
 
 % run and verify
 lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, [], psy, [], pLambdaDegree, initPhy);
+
+% set phy by hand
+constraint2 = -(x1^2 + x2^2 + x3^2 + x4^2 + x5^2 + x6^2 + x7^2 + x8^2 + x9^2 + x10^2 + x11^2 + x12^2) ; % + initPhy + lpVer.eps(1);
+leftDegree = computeDegree(constraint2, lpVer.indvars);
+de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
+
+c_gama_delta = sym('c_gama_delta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
+[~, expression] = constraintExpression(de, psy, c_gama_delta);
+constraint2 = constraint2 + expression;
+
+lpVer.exprs(2).polyexpr = constraint2;
+
 [lpVer, solveResVer, resNorms] = lpVer.solve();
 
-if solveResVer.hasSolutionWithRou()
-    disp('Verify feasible solution succeed, norms :');
-    disp(resNorms);
-    return;
-elseif ~(solveResVer.hasSolution())
-    disp('Unable to find lambda and re for an next iteration.');
-    return;
-else
-    disp(['The rou is: ', num2str(solveResVer.getRou())]);
-    lp4.Lp4Config.displayDelimiterLine();
-    % lambda = solveResVer.getLambdaExpression();
-end
+lp4.Lp4Config.printVerifyWithOnlyPsyResult(solveResVer, resNorms);
 
 warning('on')
 

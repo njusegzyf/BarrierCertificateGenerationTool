@@ -42,7 +42,8 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
             this.decvarsIndexes = HybridLinearProgramDecVarIndexes();
         end
         
-        function this = init(this, fs, eps, thetaStateIndex, theta, psys, zetas, guards, pLambdaDegree, pReDegree, phys)
+        function this = init(this, fs, eps, thetaStateIndex, theta, psys, zetas, guards,...
+                pLambdaDegree, pReDegree, phys)
             
             this.fs = fs;
             this.eps = eps;
@@ -100,44 +101,6 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
             end
         end
         
-        function this = setThetaConstraint(this, theta)
-            this.theta = theta;
-            
-            % for an empty constrain
-            if isempty(theta)
-                expr = Constraint.createEmptyConstraint();
-                expr.num = 1;
-                this.exprs = [this.exprs, expr];
-                p    return;
-            end
-            
-            expr = Constraint();
-            expr.num = 1;
-            expr.name = 'theta';
-            expr.type = 'eq';
-            expr.A = [];
-            expr.b = [];
-            
-            % different from LP, the phy is the phy of theta state
-            thetaStatePhy = this.phys(this.thetaStateIndex);
-            constraint1 = -thetaStatePhy;
-            import lp4.Lp4Config
-            de = computeDegree(constraint1, this.indvars) + Lp4Config.C_DEGREE_INC;
-            
-            c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
-            [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
-            [this, this.decvarsIndexes.cThetaStart, this.decvarsIndexes.cThetaEnd] = this.addDecisionVars(constraintDecvars);
-            
-            constraint1 = constraint1 + expression;
-            
-            constraint1 = expand(constraint1);
-            expr.polyexpr = constraint1;
-            
-            % Note: This is the first expression, and use `this.exprs(expr.num) = expr;` here
-            % will cause an error in Matlab 2014b but is Ok in Matlab 2017b.
-            this.exprs = [this.exprs, expr];
-        end
-        
         function this = setPsyConstraint(this, psys)
             if this.stateNum ~= size(psys, 1)
                 error("Psys are of wrong number.")
@@ -173,8 +136,14 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
                 de = computeDegree(constraint2, this.indvars) + Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_gama_delta', num2str(i), '_');
-                c_gama_delta = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-                [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
+                
+                if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC)
+                    [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, psy, name);
+                else
+                    c_gama_delta = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(psy) * 2, de)]);
+                    [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
+                end
+
                 [this, this.decvarsIndexes.cPsyStarts(i), this.decvarsIndexes.cPsyEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
                 constraint2 = constraint2 + expression;
@@ -229,8 +198,14 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
                 de = computeDegree(constraintGuard, this.indvars) + Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_guard', num2str(i), '_');
-                c_guard = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-                [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_guard);
+                
+                if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC)
+                    [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, guard.exprs, name);
+                else
+                    c_guard = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(guard.exprs) * 2, de)]);
+                    [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_guard);
+                end
+
                 [this, this.decvarsIndexes.cGuardStarts(i), this.decvarsIndexes.cGuardEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
                 constraintGuard = constraintGuard + expression;
@@ -267,8 +242,14 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
                 de = computeDegree(constraintRe, this.indvars) + Lp4Config.C_DEGREE_INC;
                 
                 name = strcat('c_re', num2str(i), '_');
-                c_re = sym(name, [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-                [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_re);
+                
+                if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC)
+                    [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, guard.exprs, name);
+                else
+                    c_re = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(guard.exprs) * 2, de)]);
+                    [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_re);
+                end
+
                 [this, this.decvarsIndexes.cReStarts(i), this.decvarsIndexes.cReEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
                 constraintRe = constraintRe + expression;
@@ -279,73 +260,6 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
                 this.exprs(exprNum) = expr;
             end
         end
-        
-        function this = setZetaConstraint(this, zetas)
-            this.zetas = zetas;
-            
-            for zetaIndex = 1 : length(this.zetas)
-                zeta = this.zetas(zetaIndex);
-                
-                % for an empty constrain
-                if isempty(zeta.exprs)
-                    return;
-                end
-                
-                exprNum = this.nextExprNumIndex();
-                
-                expr = Constraint();
-                expr.num = exprNum;
-                expr.name = 'zeta';
-                expr.type = 'eq';
-                expr.A = [];
-                expr.b = [];
-                
-                zetaStatePhy = this.phys(zeta.stateIndex);
-                constraint3 = zetaStatePhy + this.eps(2); % different from lp2
-                import lp4.Lp4Config
-                de = computeDegree(constraint3, this.indvars) + Lp4Config.C_DEGREE_INC;
-                
-                name = strcat('c_u_v', num2str(zetaIndex));
-                c_u_v = sym(name,[1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]);
-                [constraintDecvars, expression] = constraintExpression(de, zeta.exprs, c_u_v);
-                [this, this.decvarsIndexes.cZetaStarts(zetaIndex), this.decvarsIndexes.cZetaEnds(zetaIndex)] = this.addDecisionVars(constraintDecvars);
-                
-                constraint3 = constraint3 + expression;
-                
-                constraint3 = expand(constraint3);
-                expr.polyexpr = constraint3;
-                
-                this.exprs(exprNum) = expr;
-            end
-        end
-        
-        function this = setDecVarsConstraint(this)
-            exprNum = this.nextExprNumIndex();
-            
-            expr = Constraint();
-            expr.num = exprNum;
-            expr.name = 'decvarconstraints';
-            expr.type = 'ie';
-            expr.polyexpr = [];
-            
-            cStart = this.decvarsIndexes.cThetaStart - 1;  % Note: `cStart + 1` is the actual start index
-            cLength = length(this.decvars) - cStart;
-            expr.A = zeros(cLength, length(this.decvars));
-            
-            for k = 1 : 1 : cLength
-                expr.A(k, cStart + k) = -1;
-            end
-            if this.isAttachRou
-                rouIndex = this.decvarsIndexes.rouIndex;
-                for k = 1 : cLength
-                    % - rou
-                    expr.A(k, rouIndex) = -1;
-                end
-            end
-            expr.b = zeros(cLength, 1);
-            
-            this.exprs(exprNum) = expr;
-        end % function setDecVarsConstraint
         
         % override
         function solveRes = createSolveRes(this, x, fval, flag, time)

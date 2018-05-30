@@ -1,5 +1,4 @@
-function [lpVer, solveResVer, resNorms] = verifyLp4EmsoftQuadcopterWithOnlyZeta()
-% Different from `runLp4EmsoftQuadcopter`, we do not set init and unsafe (theta and zeta).
+function [lpVer, solveResVer, resNorms] = verifyLp4EmsoftQuadcopterRawWithOnlyTheta()
 
 clear;
 echo on;
@@ -9,7 +8,7 @@ echo on;
 warning('off')
 
 % get the problem
-[vars, f, eps, ~, ~, zeta] = getLp4EmsoftQuadcopterProblem();
+[vars, f, eps, theta, ~, ~] = getLp4EmsoftQuadcopterRawProblem();
 
 x1 = vars(1);
 x2 = vars(2);
@@ -31,10 +30,10 @@ pLambdaDegree = 0;
 
 
 % run and verify
-lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, [], [], zeta, pLambdaDegree, initPhy);
+lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, theta, [], [], pLambdaDegree, initPhy);
 [lpVer, solveResVer, resNorms] = lpVer.solve();
 
-lp4.Lp4Config.printVerifyWithOnlyZetaResult(solveResVer, resNorms);
+lp4.Lp4Config.printVerifyWithOnlyThetaResult(solveResVer, resNorms);
 
 warning('on')
 
