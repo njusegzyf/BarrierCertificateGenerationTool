@@ -35,9 +35,13 @@ classdef SolveResBase
             res = (this.exitflag == 1);
         end
         
-        function printSolution(this)
-        end
+    end
+    
+    methods (Abstract)
+        
+        printSolution(this)
         
     end
+    
 end
 

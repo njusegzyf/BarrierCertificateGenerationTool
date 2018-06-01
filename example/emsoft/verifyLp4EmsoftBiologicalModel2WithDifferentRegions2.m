@@ -4,23 +4,34 @@ function results = verifyLp4EmsoftBiologicalModel2WithDifferentRegions2(combinat
 %
 % For example, run verifyLp4EmsoftBiologicalModel2WithDifferentRegions2([2, 2, 2]) to run 1/8 of all problems,
 % or just run verifyLp4EmsoftBiologicalModel2WithDifferentRegions2() to run all problems.
+% 
+% Note: In Matlab2017b, the problems can be verified with builtin linprog.
+% However, the verification failed with builtin linprog, but succeeded with cvx.
 
 % clear;
 echo on;
-
-if nargin < 1
-    combinationsPrefix = [];
-end
 
 % disable warning of `Support of character vectors will be removed in a future release.`
 % which is produced by function `monomials`.
 warning('off')
 
+% set dfault argument
+if nargin < 1
+    combinationsPrefix = [];
+end
+
+% since the process prdouce a lot of  text output in command window, we creat a log for the text output
+% @see https://www.mathworks.com/help/matlab/ref/diary.html 
+logFile = strcat([lp4.Lp4Config.LOG_DIR, 'BiologicalModel2WithDifferentRegions2-', num2str(combinationsPrefix), '.txt']);
+lp4.Lp4Config.beginLogging(logFile, true);
+
+
+
 % get the problem
 [vars, f, eps, theta, ~, zeta] = getLp4EmsoftBiologicalModel2();
 
 % get the test problem for ts
-[varsTest, fTest, epsTest, thetaTest, ~, ~] = getLp4EmsoftGeneralSubItemsTestProblem(9);
+[varsTest, fTest, epsTest, ~, ~, ~] = getLp4EmsoftGeneralSubItemsTestProblem(9);
 
 x1 = vars(1);
 x2 = vars(2);
@@ -76,30 +87,32 @@ combinationsPrefixLen = length(combinationsPrefix);
             end
             
             % all region index is enumerated, process it
-            psy = arrayfun(@(x) getRegion(vars(x.pos), x.regionIndex), currentSelectedRegionIndexes);
+            
+            % get psy from current regions
+            verstring = char(version);
+            if verstring(1) == '9' % for new matlab version like 2017b
+                psy = arrayfun(@(x) getRegion(vars(x.pos), x.regionIndex), currentSelectedRegionIndexes);
+            else
+                psy(varsLen) = x1; % assign the last element to pre allocate memory
+                for x = currentSelectedRegionIndexes
+                    pos = x.pos;
+                    psy(pos) = getRegion(vars(pos), x.regionIndex);
+                end
+            end
             
             psyAsStr = char(psy);
             lp4.Lp4Config.displayTextBetweenDelimiterLines(['Process psy: ', psyAsStr]);
             
-            % verify theta and zeta using phy
-            lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, theta, [], zeta, pLambdaDegree, initPhy);
-            [lpVer, solveResVer, resNorms] = lpVer.solve();
-            
-            lp4.Lp4Config.printVerifyWithOnlyThetaResult(solveResVer, resNorms);
-            lp4.Lp4Config.printVerifyWithOnlyZetaResult(solveResVer, resNorms);
-            
-            % store result (append to the end of results)
-            results = [results struct('psy', psyAsStr, 'result', solveResVer)];
-            
-            % verify psy using ts
+            % verify each psy combination using ts
             for t = ts
-                lpVer = lp4.LinearProgram4Verification3.createWithRou(varsTest, fTest, epsTest, thetaTest, [], [], pLambdaDegree, t);
-                [lpVer, solveResVer, resNorms] = lpVer.solve();
-            
-                lp4.Lp4Config.printVerifyWithOnlyThetaResult(solveResVer, resNorms);
+                lpVerTest = lp4.LinearProgram4Verification3.createWithRou(varsTest, fTest, epsTest, psy, [], [], pLambdaDegree, t);
+                [~, solveResVerTest, resNormsTest] = lpVerTest.solve();
+                lp4.Lp4Config.printVerifyWithOnlyThetaResult(solveResVerTest, resNormsTest);
+                
+                % store result (append to the end of results)
+                results = [results struct('psy', psyAsStr, 'ts', ts, 'result', solveResVerTest)];            
             end
 
-            % TODO Store results for ts.
         else
             % for each region for the var at `currentPos`, set the region,
             % and then call `processRegionCombinations` with next position to process remain vars
@@ -119,8 +132,19 @@ combinationsPrefixLen = length(combinationsPrefix);
         end
     end
 
-% begin process from first var
+% verify theta and zeta using phy, which is same to all combinations
+lpVer = lp4.LinearProgram4Verification3.createWithRou(vars, f, eps, theta, [], zeta, pLambdaDegree, initPhy);
+[lpVer, solveResVer, resNorms] = lpVer.solve();
+
+lp4.Lp4Config.printVerifyWithOnlyThetaResult(solveResVer, resNorms);
+lp4.Lp4Config.printVerifyWithOnlyZetaResult(solveResVer, resNorms);
+
+% begin process from first psy combination
 processRegionCombinations(1);
+
+
+
+lp4.Lp4Config.endLogging(logFile, true);
 
 warning('on')
 

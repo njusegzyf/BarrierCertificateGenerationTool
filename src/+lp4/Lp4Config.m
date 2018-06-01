@@ -2,11 +2,13 @@ classdef Lp4Config
     %LP4CONFIG Stores the configurations.
     
     properties (Constant)
-        IS_DEBUG = true;
-        IS_VERBOSE = false;
         
-        % 如果为 true，验证时，除了尝试代入求出的 lambda 求 phy，还尝试代入求出的 phy 求 lambda
-        IS_VERIFY_WITH_PHY = true;
+        IS_USE_CVX = false;
+        
+        % 验证时(固定 lambda 或者 phy，求另一个项)，每个公式右边项的次数限制 = 
+        % max(左边项的次数 + VERIFICATION_C_DEGREE_INC, MIN_VERIFICATION_C_DEGREE)
+        VERIFICATION_C_DEGREE_INC = 0;
+        MIN_VERIFICATION_C_DEGREE = 6;
         
         % 根据 rou <= ROU_THRESHOLD 判断是否有解
         ROU_THRESHOLD = 1e-6;
@@ -17,12 +19,8 @@ classdef Lp4Config
         % 在使用 SLPP 迭代求解时，默认的最大迭代次数
         DEFAULT_MAX_ITERATION_COUNT = 50
         
-        % 第一步求解时，每个公式右边项的次数限制 = 左边项的次数 + C_DEGREE_INC
+        % 同时求解 phy 和 lambda 时，每个公式右边项的次数限制 = 左边项的次数 + C_DEGREE_INC
         C_DEGREE_INC = 0;
-        
-        % 第二步验证时，每个公式右边项的次数限制 = max(左边项的次数 + VERIFICATION_C_DEGREE_INC, MIN_VERIFICATION_C_DEGREE)
-        VERIFICATION_C_DEGREE_INC = 0;
-        MIN_VERIFICATION_C_DEGREE = 0;
         
         DEFAULT_DEC_VAR_SIZE = 4096; 
             % 4096 * 2 * max(lp4.Lp4Config.VERIFICATION_C_DEGREE_INC + 1, lp4.Lp4Config.MIN_VERIFICATION_C_DEGREE - 4);
@@ -44,14 +42,20 @@ classdef Lp4Config
         IS_SET_LINPROG_LOWERBOUND = false;
         LINPROG_LOWERBOUND = -1e12;
         
-        IS_USE_CVX = false;
-        
         IS_ADD_EPS_IN_THETA_EXP = true;
+        
+        % 如果为 true，验证时，除了尝试代入求出的 lambda 求 phy，还尝试代入求出的 phy 求 lambda
+        IS_VERIFY_WITH_PHY = true;
         
         % 是否打印失败的验证的详细信息
         IS_PRINT_FAILED_VERIFICATION_INFO = false;
         
         IS_USE_NEW_CONSTRAINT_GENERATION_FUNC = true;
+        
+        LOG_DIR = 'D:\ProjsMatlab\LP-Proj\log\'
+        
+        IS_DEBUG = true;
+        IS_VERBOSE = false;
     end
     
     methods (Static)
@@ -184,6 +188,26 @@ classdef Lp4Config
             disp('Find a solution, but rou is not OK.');
             disp(['The rou is: ', num2str(solveResVer.getRou())]);
             disp(['The norms after drop negative c is: ', num2str(norm)]);
+        end
+        
+        function beginLogging(logFile, isOverwriteLogFile) 
+            % by default, overwrite old log file
+            if nargin < 2
+                isOverwriteLogFile = true;
+            end
+            
+            diary off;
+            
+            if isOverwriteLogFile
+                delete(logFile);
+            end
+            
+            diary(logFile);
+            diary on;
+        end
+        
+        function endLogging(logFile)
+            diary off;
         end
         
     end % methods (Static)

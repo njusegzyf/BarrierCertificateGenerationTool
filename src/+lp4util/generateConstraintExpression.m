@@ -34,7 +34,7 @@ c = sym(cNamePrefix, [1, lp4.Lp4Config.getDecVarArraySize(basesLen, maxDegree)])
 % 实际使用的决策变量数目
 cNum = 1;
 
-% init the expression with constant term
+% init the expression with the constant term
 expression = c(cNum);
 
     function addCombinations(currentPos, currentDegree)
@@ -44,7 +44,7 @@ expression = c(cNum);
         end
         
         if currentDegree <= maxDegree
-            % first add the current combination if the power for current pos base is not zero
+            % first add the current combination if the power for the base at current position is not zero
             if (basesPowers(currentPos) ~= 0)
                 
                 % compute the current combination
@@ -53,16 +53,16 @@ expression = c(cNum);
                     currentCombination = currentCombination*bases(j)^basesPowers(j);
                 end
                 
-                % add
+                % increase `cNum` 
                 cNum = cNum + 1;
+				% add the combination to `expression`
                 expression = expression + c(cNum) * currentCombination;
             end
             
-            % if we can add more bases
+            % if current degree is less than max degree, than we can add more bases
             if currentDegree < maxDegree
-                % add reamin bases
-                % clear power for the base at next position
-                basesPowers(currentPos + 1) = 0;
+                % add remain bases
+                basesPowers(currentPos + 1) = 0; % clear power for the base at next position
                 addCombinations(currentPos + 1, currentDegree);
                 
                 % add the current base
@@ -72,7 +72,7 @@ expression = c(cNum);
                 addCombinations(currentPos, currentDegree);               
             end
             
-        end % if current degree is already larger than degree, cut the branch
+        end % if current degree is already larger than degree, cut the branch (do nothing at else branch)
     end
 
 % start from first base
