@@ -4,7 +4,6 @@ classdef (Abstract) Lp4AndHlpVerificationBase
     properties
         indvars % 问题1中的独立变量，例如x = [x1, x2, ..., xn]，类型为符号化变量构成的行向量
         eps
-        theta
         decvars % 问题中的决策变量
         exprs % 所有的等式/不等式约束
         linprogF % 线性规划的目标函数
@@ -193,6 +192,10 @@ classdef (Abstract) Lp4AndHlpVerificationBase
                     x(i) = 0;
                 end
             end
+        end
+        
+        function res = getAllCDecvars(this)
+            res = this.decvars(this.getCStart() : end);
         end
         
     end

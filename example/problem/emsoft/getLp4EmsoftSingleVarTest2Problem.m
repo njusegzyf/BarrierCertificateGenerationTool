@@ -1,4 +1,4 @@
-function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4EmsoftSingleVarTestProblem()
+function [vars, f, eps, g_theta, g_psy, g_zeta] = getLp4EmsoftSingleVarTest2Problem()
 
 % independent variables
 syms x;
@@ -10,7 +10,7 @@ f = [1];
 eps = [0, 0];
 
 % Constructing the theta constraint
-g_theta = (vars+1)/2;
+g_theta = [x];
 
 % Constructing the psy constraint
 g_psy = (vars+1)/2;

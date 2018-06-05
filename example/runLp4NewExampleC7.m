@@ -10,7 +10,7 @@ warning('off')
 [vars, f, eps, theta, psy, zeta] = getLp4NewExampleC7Problem();
 
 % Set the degree of phy
-degree = 2;
+degree = 3;
 
 lambda = 1;
 

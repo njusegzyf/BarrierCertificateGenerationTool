@@ -12,7 +12,7 @@ warning('off')
 
 
 % Set the degree of phy and lambda
-degree = 4;
+degree = 2;
 pLambdaDegree = 0;
 
 import lp4util.Partition

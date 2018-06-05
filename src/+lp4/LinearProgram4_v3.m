@@ -12,7 +12,7 @@ classdef LinearProgram4_v3
         % r % 问题1中的λ, which is replaced by pLambdaPolynomial
         eps % 问题1中的?1和?1构成的向量
         f % 问题1中的f
-        decvars % 问题1中的决策变量，包括P, Cα,β, Cγ,δ, Cu,v
+        decvars % 问题1中的决策变量，包括 p, lambda, w, rou, c
         exprs
         
         % new in lp4
@@ -23,6 +23,8 @@ classdef LinearProgram4_v3
         
         wSymbolicVars
         wExpression
+        
+        rouVarIndex
         rouVar
         
         pPartitions
@@ -35,6 +37,12 @@ classdef LinearProgram4_v3
         zeta
         
         rouInc  =  0
+        
+        cStart = -1
+        lambdaEnd
+        
+        fDecvars
+        nonlconConstraints % nonlconConstraints(i) <= 0
     end % properties
     
     methods
@@ -97,16 +105,14 @@ classdef LinearProgram4_v3
         function this = setDegreeAndInit(this, degree, pLambdaDegree)
             this.degree = degree;
             this.pLambdaDegree = pLambdaDegree;
+            
+            % set Phy
             p = sym('p', [1, monomialNumber(length(this.indvars), degree)]);
             this = this.addDecisionVars(p);
             this.phy = p * monomials(this.indvars, 0 : degree);
             
             % new in lp4
             import lp4util.SymbolicPolynomial
-            
-            this.rouVar = sym('rou');
-            this = this.addDecisionVars(this.rouVar);
-            
             this.phyPolynomial = SymbolicPolynomial(this.indvars, degree, p, this.phy);
             
             % set PLambda
@@ -114,10 +120,15 @@ classdef LinearProgram4_v3
             this = this.addDecisionVars(pLambda);
             pLambdaExpr = pLambda * monomials(this.indvars, 0 : pLambdaDegree);
             this.pLambdaPolynomial = SymbolicPolynomial(this.indvars, pLambdaDegree, pLambda, pLambdaExpr);
+            this.lambdaEnd = length(this.decvars);
             
             % introduce W = P * PLambda
             [this.wSymbolicVars, this.wExpression] = lp4.LinearProgram4_v3.createWExpression(this.phyPolynomial, this.pLambdaPolynomial);
             this = this.addDecisionVars(this.wSymbolicVars);
+            
+            this.rouVar = sym('rou');
+            this = this.addDecisionVars(this.rouVar);
+            this.rouVarIndex = length(this.decvars);
         end
         
         function this = setThetaConstraint(this, theta)
@@ -143,6 +154,7 @@ classdef LinearProgram4_v3
             
             c_alpha_beta = sym('c_alpha_beta', [1, lp4.Lp4Config.DEFAULT_DEC_VAR_SIZE]); % pre-defined varibales, only a few of them are the actual variables
             [constraintDecvars, expression] = constraintExpression(de, theta, c_alpha_beta);
+            this.cStart = length(this.decvars) + 1;
             this = this.addDecisionVars(constraintDecvars);
             
             constraint1 = constraint1 + expression;
@@ -237,12 +249,12 @@ classdef LinearProgram4_v3
             expr.type = 'ie';
             expr.polyexpr = [];
             
-            cStart = this.getWStart() + this.getWLength() - 1;
-            cLength = length(this.decvars) - cStart;
+            cStartMinus1 = this.cStart - 1;
+            cLength = length(this.decvars) - cStartMinus1;
             expr.A = zeros(cLength, length(this.decvars));
             rouIndex = this.getRouIndex();
             for k = 1 : 1 : cLength
-                expr.A(k, cStart + k) = -1;
+                expr.A(k, cStartMinus1 + k) = -1;
                 % - rou
                 expr.A(k, rouIndex) = -1;
             end
@@ -310,8 +322,7 @@ classdef LinearProgram4_v3
             
             % chagend in lp4, in which f = rou
             % rouVarIndex = find(this.decvars == this.rouVar);
-            rouVarIndex = this.getRouIndex();
-            this.linprogF(rouVarIndex) = 1;
+            this.linprogF(this.getRouIndex()) = 1;
         end
         
         function [this, solveRes] = solve(this)
@@ -384,8 +395,7 @@ classdef LinearProgram4_v3
             [x, fval, flag, ~] = linprog(this.linprogF, Aie, bie, Aeq, beq);
             time = toc;
             
-            import lp4.LinearProgram4SolveResult
-            solveRes = LinearProgram4SolveResult(this, x, fval, flag, time);
+            solveRes = lp4.LinearProgram4SolveResult(this, x, fval, flag, time);
             
             if lp4.Lp4Config.isDebug()
                 solveRes.printSolution();
@@ -477,6 +487,154 @@ classdef LinearProgram4_v3
         
         function res = getWLength(this)
             res = size(this.wSymbolicVars, 1) * size(this.wSymbolicVars, 2);
+        end
+        
+        function res = getWEnd(this)
+            res = this.rouVarIndex - 1;
+        end
+        
+        function res = getAllCDecvars(this)
+            res = this.decvars(this.cStart : end);
+        end
+        
+        function res = solveDirectlyWithFmincon(this)
+            phyAndLambdaVars = this.decvars(1 : this.lambdaEnd);
+            phyAndLambdaVarsLen = length(phyAndLambdaVars);
+            
+            cVars = this.getAllCDecvars();
+            cVarsLen = length(cVars);
+            
+            this.fDecvars = [phyAndLambdaVars, cVars];
+            fDecvarsLen = phyAndLambdaVarsLen + cVarsLen;
+            
+            % optimtool
+            % http://ww2.mathworks.cn/help/optim/ug/fmincon.html
+            problem.solver = 'fmincon';
+            options = optimoptions('fmincon','Display','iter','Algorithm','interior-point');
+            problem.options = options;
+            
+            % set the objective function to maximize the sum of all Cs (to be the negative of the sum of all C)
+            problem.objective = @(x) -sum(x(phyAndLambdaVarsLen + 1 : end));
+            
+            % init point
+            problem.x0 = zeros([1, fDecvarsLen]); % ones([1, fDecvarsLen]);
+            
+            % no lb and up
+            %             indvarsLbs = arrayfun(@(p) p.boundLow, indvarsBounds);
+            %             lb = [indvarsLbs, zeros([1, cVarsLen])];
+            %             indvarsUbs = arrayfun(@(p) p.boundHigh, indvarsBounds);
+            %             ub = [indvarsLbs, repmat(10000000, [1, cVarsLen])];
+            %             problem.lb = lb;
+            %             problem.ub = ub;
+            
+            % use ineq for c >= 0
+            aineq = zeros([cVarsLen, fDecvarsLen]);
+            for k = 1 : 1 : cVarsLen
+                aineq(k, phyAndLambdaVarsLen + k) = -1;
+            end
+            bineq = zeros([cVarsLen, 1]);
+            problem.Aineq = aineq;
+            problem.bineq = bineq;
+            
+            this = this.setNonlconConstraints();
+            this.displayNonlcon();
+            
+            problem.nonlcon = @this.getNonlcon;
+            
+            res = fmincon(problem);
+            % res = []; % if we just want to display the constraints
+        end
+        
+        function this = setNonlconConstraints(this)
+            % collect eqs for non linear constraints
+            Aeq = [];
+            beq = [];
+            
+            for k = 1 : length(this.exprs)
+                if this.exprs(k).isEmptyConstraint()
+                    continue;
+                end
+                
+                if strcmp(this.exprs(k).type, 'eq')
+                    Aeq = [Aeq; this.exprs(k).A];
+                    beq = [beq; this.exprs(k).b];
+                end
+            end
+            
+            decvarsLen = length(this.decvars);
+            eqLength = size(Aeq, 1);
+            
+            % pre allocate memory
+            this.nonlconConstraints = [this.decvars(1)];
+            this.nonlconConstraints(eqLength) = this.decvars(1);
+            
+            for k = 1 : eqLength
+                expr = Aeq(k, :) * reshape(this.decvars, [decvarsLen, 1]) - beq(k);
+                
+                for i1 = 1 : length(this.phyPolynomial.coefficientVars)
+                    for i2 = 1 : length(this.pLambdaPolynomial.coefficientVars)
+                        p = this.phyPolynomial.coefficientVars(i1);
+                        pLambda = this.pLambdaPolynomial.coefficientVars(i2);
+                        w = this.wSymbolicVars(i1, i2);
+                        
+                        expr = subs(expr, w, p*pLambda);
+                    end
+                end
+                
+                this.nonlconConstraints(k) = expr;
+            end
+        end
+        
+        function [c, ceq] = getNonlcon(this, x)
+            
+            nonlconConstraintsLen = length(this.nonlconConstraints);
+            
+            ceq(nonlconConstraintsLen) = 0;
+            
+            for k = 1 : nonlconConstraintsLen
+                
+                expr = this.nonlconConstraints(k);
+                
+                % eval the constraint expr with its actual value
+                expr = subs(expr, this.fDecvars, x);
+                %                 fDecvarsLen = length(this.fDecvars);
+                %                 for i = 1 : fDecvarsLen
+                %                      expr = subs(expr, this.fDecvars(i), x(i));
+                %                 end
+                
+                ceq(k) = double(expr);
+            end
+            
+            c = [];
+        end
+        
+        function displayNonlcon(this)
+            lp4.Lp4Config.displayDelimiterLine();
+            disp(['Phy degree: ', num2str(this.degree), ', Lambda degree:', num2str(this.pLambdaDegree)]);
+            
+            lp4.Lp4Config.displayDelimiterLine();
+            disp('Dec vars:');
+            disp(this.fDecvars);
+            
+            lp4.Lp4Config.displayDelimiterLine();
+            disp('Nonlinear constraints:');
+            
+            disp('[');
+            for expr = this.nonlconConstraints
+                disp([char(expr), ',']);
+            end
+            disp(']');
+            
+            lp4.Lp4Config.displayDelimiterLine();
+            disp('C constraints:');
+            
+            disp('[');
+            for expr = this.decvars(this.cStart : end)
+                disp([char(expr), ',']);
+            end
+            disp(']');
+            
+            lp4.Lp4Config.displayDelimiterLine();
         end
         
     end % methods

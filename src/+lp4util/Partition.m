@@ -53,6 +53,11 @@ classdef Partition
             expr.A = [expr.A; A];
             expr.b = [expr.b; b];
         end
+        
+        function res = middlePoint(this)
+            res = (this.boundLow + this.boundHigh)/2;
+        end
+        
     end % end methods
     
     methods (Static = true)

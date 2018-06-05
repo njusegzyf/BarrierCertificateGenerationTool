@@ -206,7 +206,7 @@ classdef LinearProgram4VerificationBase  < lp4.Lp4AndHlpVerificationBase
     end % methods
     
     methods (Static)
-        
+
     end % methods (Static)
     
 end

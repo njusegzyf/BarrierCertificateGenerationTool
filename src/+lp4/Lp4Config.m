@@ -8,7 +8,7 @@ classdef Lp4Config
         % 验证时(固定 lambda 或者 phy，求另一个项)，每个公式右边项的次数限制 = 
         % max(左边项的次数 + VERIFICATION_C_DEGREE_INC, MIN_VERIFICATION_C_DEGREE)
         VERIFICATION_C_DEGREE_INC = 0;
-        MIN_VERIFICATION_C_DEGREE = 6;
+        MIN_VERIFICATION_C_DEGREE = 0;
         
         % 根据 rou <= ROU_THRESHOLD 判断是否有解
         ROU_THRESHOLD = 1e-6;
@@ -33,7 +33,7 @@ classdef Lp4Config
         VERIFICATION_LAMBDA_DEGREE_INC = 0;
         
         % 如果为 true，则将迭代过程中计算得到的所有小于零（但是大于 -rou ）的决策变量 C 强制置为 0
-        IS_DROP_NEGATIVE_C = true;
+        IS_DROP_NEGATIVE_C = false;
         
         DEFAULT_PARTITION_REPEAT_NUM = 1024;
         
@@ -61,11 +61,12 @@ classdef Lp4Config
     methods (Static)
         
         function res = processDegree(de)
-            if mod(de, 2) == 0
-                res = de;
-            else
-                res = de + 1;
-            end
+            res = de;
+%             if mod(de, 2) == 0
+%                 res = de;
+%             else
+%                 res = de + 1;
+%             end
         end
         
         function res = getVerificationCDegree(leftDegree)

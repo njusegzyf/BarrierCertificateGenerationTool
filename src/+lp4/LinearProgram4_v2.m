@@ -97,8 +97,7 @@ classdef LinearProgram4_v2
             this.pLambdaPolynomial = SymbolicPolynomial(this.indvars, pLambdaDegree, pLambda, pLambdaExpr);
             
             % introduce W = P * PLambda
-            import lp4.LinearProgram4
-            [this.wSymbolicVars, this.wExpression] = LinearProgram4.createWExpression(this.phyPolynomial, this.pLambdaPolynomial);
+            [this.wSymbolicVars, this.wExpression] = lp4.HybridLinearProgram.createWExpression('w', this.phyPolynomial, this.pLambdaPolynomial);
             this = this.addDecisionVars(this.wSymbolicVars);
         end
         
@@ -420,24 +419,7 @@ classdef LinearProgram4_v2
     methods (Static)
         
         function [wSymbolicVars, wExpression] = createWExpression(pPolynomial, pLambdaPolynomial)
-            wSymbolicVars = sym('w', [length(pPolynomial.coefficientVars), length(pLambdaPolynomial.coefficientVars)]);
-            wExpression = pPolynomial.expression * pLambdaPolynomial.expression;
-            
-            wExpression = expand(wExpression); % feval(symengine, 'expand', wExpression);
-            
-            % wExpression = collect(wExpression);
-            % wExpression = feval(symengine, 'collect', wExpression,...
-            % converttochar([pPolynomial.symbolicVars, pLambdaPolynomial.symbolicVars]));
-            
-            for i = 1 : 1 : length(pPolynomial.coefficientVars)
-                for j = 1 : 1 : length(pLambdaPolynomial.coefficientVars)
-                    % replace `p_i * pLambda_j` with `w_i_j`
-                    iSymbol = pPolynomial.coefficientVars(i);
-                    jSymbol = pLambdaPolynomial.coefficientVars(j);
-                    wSymbol = wSymbolicVars(i, j);
-                    wExpression = subs(wExpression, iSymbol * jSymbol, wSymbol);
-                end
-            end
+            [wSymbolicVars, wExpression] = lp4.HybridLinearProgram.createWExpression('w', pPolynomial, pLambdaPolynomial);
         end % function createWExpression
         
     end % methods (Static)
