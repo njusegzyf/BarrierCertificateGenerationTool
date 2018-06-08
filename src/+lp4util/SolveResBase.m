@@ -14,7 +14,9 @@ classdef SolveResBase
         
         time
         
-        normThreadhold = 0.00001
+        resNorms
+        
+        normThreadhold = lp4.Lp4Config.RES_NORM_THRESHOLD;
     end
     
     methods

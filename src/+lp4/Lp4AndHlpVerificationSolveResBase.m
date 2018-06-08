@@ -16,10 +16,14 @@ classdef Lp4AndHlpVerificationSolveResBase < lp4util.SolveResBase
                 this.exitflag = exitflag;
                 this.time = time;
             end
-        end
-        
-        function res = hasSolutionWithRou(this)
-            res = this.exitflag == 1 && this.getRou() <= lp4.Lp4Config.ROU_THRESHOLD; % this.getRou() <= 0;
+            
+            % Note: we can not only compute exprs' norms here, as this constructor can be called with no argument,
+            % which means these statements may be executed when the object is not fully constructed.
+            if this.hasSolution()
+                this.resNorms = this.computeAllExprsNorms();
+            else
+                this.resNorms = [];
+            end
         end
         
         function res = getRou(this)
@@ -29,6 +33,11 @@ classdef Lp4AndHlpVerificationSolveResBase < lp4util.SolveResBase
             else
                 error('Rou is not used.')
             end
+        end
+        
+        function res = hasSolutionWithRou(this)
+            % res = this.exitflag == 1 && this.getRou() <= lp4.Lp4Config.ROU_THRESHOLD; % this.getRou() <= 0;
+            res = this.hasSolution() && this.getRou() <= lp4.Lp4Config.ROU_THRESHOLD && max(this.resNorms) <= lp4.Lp4Config.RES_NORM_THRESHOLD;
         end
         
         function res = computeExprNorm(this, index)

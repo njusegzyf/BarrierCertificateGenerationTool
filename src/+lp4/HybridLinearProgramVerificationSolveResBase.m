@@ -16,6 +16,12 @@ classdef HybridLinearProgramVerificationSolveResBase < lp4.Lp4AndHlpVerification
                 this.exitflag = exitflag;
                 this.time = time;
             end
+            
+            if this.hasSolution()
+                this.resNorms = this.computeAllExprsNorms();
+            else
+                this.resNorms = [];
+            end
         end
         
 %         function res = getRou(this)
@@ -106,7 +112,7 @@ classdef HybridLinearProgramVerificationSolveResBase < lp4.Lp4AndHlpVerification
                 % diaplay code from lp3
                 disp('--------------------------------------------------------------');
                 disp('The parameter setting:');
-                disp(['; lambda degree: ', num2str(lp.pLambdaDegree),...
+                disp(['lambda degree: ', num2str(lp.pLambdaDegree),...
                     '; re degree: ', num2str(lp.pReDegree),...
                     '; eps1: ',num2str(lp.eps(1)),...
                     '; eps2: ',num2str(lp.eps(2))]);

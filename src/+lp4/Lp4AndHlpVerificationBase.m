@@ -119,15 +119,10 @@ classdef (Abstract) Lp4AndHlpVerificationBase
             end
             solveRes = this.createSolveRes(x, fval, flag, time);
             
-            import lp4.Lp4Config
-            if Lp4Config.isDebug()
-                solveRes.printSolution();
-            end
+            resNorms = solveRes.resNorms;
             
-            if solveRes.hasSolution()
-                resNorms = solveRes.computeAllExprsNorms();
-            else
-                resNorms = [];
+            if lp4.Lp4Config.isDebug()
+                solveRes.printSolution();
             end
             
         end % function solve
@@ -168,17 +163,13 @@ classdef (Abstract) Lp4AndHlpVerificationBase
             end
             solveRes = this.createCvxSolveRes(x, cvx_optval, cvx_status, cvx_cputime);
             
+            resNorms = solveRes.resNorms;
+            
             import lp4.Lp4Config
             if Lp4Config.isDebug()
                 solveRes.printSolution();
             end
-            
-            if solveRes.hasSolution()
-                resNorms = solveRes.computeAllExprsNorms();
-            else
-                resNorms = [];
-            end
-            
+   
         end % function solveWithCvx
         
         function res = decvarsLen(this)

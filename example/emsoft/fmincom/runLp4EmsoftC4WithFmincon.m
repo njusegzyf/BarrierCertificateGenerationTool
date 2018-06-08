@@ -1,6 +1,6 @@
-function res = runLp4EmsoftC6WithFmincom() 
+function res = runLp4EmsoftC4WithFmincon() 
 
-% C6
+% C4
 
 clear; 
 echo on;
@@ -9,12 +9,12 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, f, ~, g_theta, g_psy, g_zeta] = getLp4BenkEx8Problem();
+[vars, f, ~, g_theta, g_psy, g_zeta] = getLp4BenkEx17Problem();
 
 eps = [0.1, 0.1];
 
 % Set the degree of phy
-degree = 2;
+degree = 1;
 pLambdaDegree = 2;
 
 

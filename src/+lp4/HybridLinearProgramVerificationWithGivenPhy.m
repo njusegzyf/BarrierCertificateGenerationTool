@@ -132,8 +132,9 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
                 end
                 
                 constraint2 = -phy_d + this.pLambdaPolynomials(i).expression * this.phys(i) + this.eps(1);
-                import lp4.Lp4Config
-                de = computeDegree(constraint2, this.indvars) + Lp4Config.C_DEGREE_INC;
+                
+                leftDegree = computeDegree(constraint2, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
                 
                 name = strcat('c_gama_delta', num2str(i), '_');
                 
@@ -194,8 +195,8 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
                 
                 constraintGuard = constraintGuard + this.pRePolynomials(i).expression * guardFromPhy;
                 
-                import lp4.Lp4Config
-                de = computeDegree(constraintGuard, this.indvars) + Lp4Config.C_DEGREE_INC;
+                leftDegree = computeDegree(constraintGuard, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
                 
                 name = strcat('c_guard', num2str(i), '_');
                 
@@ -238,8 +239,13 @@ classdef HybridLinearProgramVerificationWithGivenPhy < lp4.HybridLinearProgramVe
                 
                 constraintRe = - (this.pRePolynomials(i).expression);
                 
-                import lp4.Lp4Config
-                de = computeDegree(constraintRe, this.indvars) + Lp4Config.C_DEGREE_INC;
+                leftDegree = computeDegree(constraintRe, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
+                
+                % if re is a constant, ignore it
+                %                 if de == 0
+                %                     continue;
+                %                 end
                 
                 name = strcat('c_re', num2str(i), '_');
                 

@@ -121,12 +121,19 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe < lp4.HybridLinearP
                 end
                 
                 constraint2 = -phy_d + this.lambdas(i) * currentPhy + this.eps(1);
-                import lp4.Lp4Config
-                de = computeDegree(constraint2, this.indvars) + Lp4Config.C_DEGREE_INC;
+                
+                leftDegree = computeDegree(constraint2, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
                 
                 name = strcat('c_gama_delta', num2str(i), '_');
-                c_gama_delta = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(psy) * 2, de)]);
-                [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
+                
+                if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC)
+                    [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, psy, name);
+                else
+                    c_gama_delta = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(psy) * 2, de)]);
+                    [constraintDecvars, expression] = constraintExpression(de, psy, c_gama_delta);
+                end
+                
                 [this, this.decvarsIndexes.cPsyStarts(i), this.decvarsIndexes.cPsyEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
                 constraint2 = constraint2 + expression;
@@ -175,12 +182,18 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe < lp4.HybridLinearP
                 
                 constraintGuard = constraintGuard + this.res(i) * guardFromPhy;
                 
-                import lp4.Lp4Config
-                de = computeDegree(constraintGuard, this.indvars) + Lp4Config.C_DEGREE_INC;
+                leftDegree = computeDegree(constraintGuard, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
                 
                 name = strcat('c_guard', num2str(i), '_');
-                c_guard = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(guard.exprs) * 2, de)]);
-                [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_guard);
+                
+                if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC)
+                    [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, guard.exprs, name);
+                else
+                    c_guard = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(guard.exprs) * 2, de)]);
+                    [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_guard);
+                end
+                
                 [this, this.decvarsIndexes.cGuardStarts(i), this.decvarsIndexes.cGuardEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
                 constraintGuard = constraintGuard + expression;
@@ -213,8 +226,8 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe < lp4.HybridLinearP
                 
                 constraintRe = - this.res(i);
                 
-                import lp4.Lp4Config
-                de = computeDegree(constraintRe, this.indvars) + Lp4Config.C_DEGREE_INC;
+                leftDegree = computeDegree(constraintRe, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
                 
                 % if re is a constant, ignore it
                 %                 if de == 0
@@ -222,8 +235,14 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndRe < lp4.HybridLinearP
                 %                 end
                 
                 name = strcat('c_re', num2str(i), '_');
-                c_re = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(guard.exprs) * 2, de)]);
-                [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_re);
+                
+                if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC)
+                    [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, guard.exprs, name);
+                else
+                    c_re = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(guard.exprs) * 2, de)]);
+                    [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_re);
+                end
+                
                 [this, this.decvarsIndexes.cReStarts(i), this.decvarsIndexes.cReEnds(i)] = this.addDecisionVars(constraintDecvars);
                 
                 constraintRe = constraintRe + expression;

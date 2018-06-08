@@ -43,6 +43,7 @@ classdef LinearProgram4_v3
         
         fDecvars
         nonlconConstraints % nonlconConstraints(i) <= 0
+        nonlconConstraintsFunctions
     end % properties
     
     methods
@@ -509,8 +510,13 @@ classdef LinearProgram4_v3
             
             % optimtool
             % http://ww2.mathworks.cn/help/optim/ug/fmincon.html
+            % http://www.mathworks.com/help/optim/ug/optimoptions.html
+            
+            % all available algorithms: 'interior-point', 'active-set', 'sqp', 'sqp-legacy', 'trust-region-reflective'
             problem.solver = 'fmincon';
-            options = optimoptions('fmincon','Display','iter','Algorithm','interior-point');
+            options = optimoptions('fmincon', 'Display', 'iter',...
+                                   'Algorithm', 'interior-point',...
+                                   'MaxFunctionEvaluations', 50000, 'MaxIterations', 200);
             problem.options = options;
             
             % set the objective function to maximize the sum of all Cs (to be the negative of the sum of all C)
@@ -565,8 +571,15 @@ classdef LinearProgram4_v3
             eqLength = size(Aeq, 1);
             
             % pre allocate memory
-            this.nonlconConstraints = [this.decvars(1)];
-            this.nonlconConstraints(eqLength) = this.decvars(1);
+            fakeConstraint = this.decvars(1);
+            this.nonlconConstraints = [fakeConstraint];
+            this.nonlconConstraints(eqLength) = fakeConstraint;
+            
+            this.nonlconConstraintsFunctions = cell(eqLength);
+            %             fakeFunction = matlabFunction(fakeConstraint);
+            %             % Note: we must use cell arrays for function handlers
+            %             % this.nonlconConstraintsFunctions = {fakeFunction};
+            %             this.nonlconConstraintsFunctions{eqLength} = fakeFunction;
             
             for k = 1 : eqLength
                 expr = Aeq(k, :) * reshape(this.decvars, [decvarsLen, 1]) - beq(k);
@@ -582,6 +595,7 @@ classdef LinearProgram4_v3
                 end
                 
                 this.nonlconConstraints(k) = expr;
+                this.nonlconConstraintsFunctions{k} = matlabFunction(expr, 'vars', {this.fDecvars});
             end
         end
         
@@ -589,20 +603,24 @@ classdef LinearProgram4_v3
             
             nonlconConstraintsLen = length(this.nonlconConstraints);
             
+            % pre alocate memory
             ceq(nonlconConstraintsLen) = 0;
             
             for k = 1 : nonlconConstraintsLen
                 
-                expr = this.nonlconConstraints(k);
+                % since we have converted symbol expressions to function handlers, we can directly call the functions.
+                ceq(k) = this.nonlconConstraintsFunctions{k}(x);
                 
-                % eval the constraint expr with its actual value
-                expr = subs(expr, this.fDecvars, x);
-                %                 fDecvarsLen = length(this.fDecvars);
-                %                 for i = 1 : fDecvarsLen
-                %                      expr = subs(expr, this.fDecvars(i), x(i));
-                %                 end
-                
-                ceq(k) = double(expr);
+                %                 expr = this.nonlconConstraints(k);
+                %
+                %                 % eval the constraint expr with its actual value
+                %                 expr = subs(expr, this.fDecvars, x);
+                %                 %                 fDecvarsLen = length(this.fDecvars);
+                %                 %                 for i = 1 : fDecvarsLen
+                %                 %                      expr = subs(expr, this.fDecvars(i), x(i));
+                %                 %                 end
+                %
+                %                 ceq(k) = double(expr);
             end
             
             c = [];

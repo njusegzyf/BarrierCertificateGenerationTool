@@ -1,6 +1,6 @@
-function res = runLp4EmsoftC2WithFmincom() 
+function res = runLp4EmsoftC6WithFmincon() 
 
-% C2
+% C6
 
 clear; 
 echo on;
@@ -9,19 +9,17 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-
-
-[vars, f, ~, g_theta, g_psy, g_zeta] = getLp4Example7Problem();
+[vars, f, ~, g_theta, g_psy, g_zeta] = getLp4BenkEx8Problem();
 
 eps = [0.1, 0.1];
 
 % Set the degree of phy
-degree = 4;
+degree = 2;
 pLambdaDegree = 2;
 
+
+
 res = lp4.solveBlpDirectlyWithFmincon(vars, f, eps, g_theta, g_psy, g_zeta, degree, pLambdaDegree);
-
-
 
 warning('on')
 

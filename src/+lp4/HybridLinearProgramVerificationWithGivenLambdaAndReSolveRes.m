@@ -1,29 +1,12 @@
-classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
+classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes < lp4.HybridLinearProgramVerificationSolveResBase
     %HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes Represents a solve result of a HybridLinearProgramVerificationWithGivenLambdaAndRe.
     
-    properties
-        linearProgram
-        
-        % the result of solving the linear programming
-        x
-        % the value of the objective function fun at the solution x: fval = f'*x.
-        fval
-        % a value exitflag that describes the exit condition
-        exitflag
-        % a structure output that contains information about the optimization process output
-        output
-        
-        time
-    end
-    
     methods
+        
         function this = HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg)
             %HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes 构造此类的实例
-            this.linearProgram = linearProgramArg;
-            this.x = xArg;
-            this.fval = fvalArg;
-            this.exitflag = exitflagArg;
-            this.time = timeArg;
+            
+            this@lp4.HybridLinearProgramVerificationSolveResBase(linearProgramArg, xArg, fvalArg, exitflagArg, timeArg);
         end
         
         function res = getPhyCoefficient(this, i)
@@ -73,26 +56,7 @@ classdef HybridLinearProgramVerificationWithGivenLambdaAndReSolveRes
             end
         end
         
-        function res = computeExprNorm(this, index)
-            lp = this.linearProgram;
-            expr = lp.exprs(index);
-            
-            if strcmp(expr.name, 'empty') || strcmp(expr.type, 'ie')
-                res = 0;
-                return;
-            end
-            
-            mid = expr.A * this.x - expr.b;
-            res = norm(mid);
-        end
-        
-        function res = computeAllExprsNorms(this)
-            exprCount = length(this.linearProgram.exprs);
-            res(exprCount) = this.computeExprNorm(exprCount);
-            for i = 1 : exprCount - 1
-                res(i) = this.computeExprNorm(i);
-            end
-        end
+
         
         function printSolution(this)
             lp = this.linearProgram;

@@ -1,4 +1,4 @@
-function res = runLp4EmsoftC1WithFmincom() 
+function res = runLp4EmsoftC1WithFmincon() 
 
 % C1
 

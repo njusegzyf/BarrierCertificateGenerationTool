@@ -1,6 +1,6 @@
-function res = runLp4EmsoftC3WithFmincom() 
+function res = runLp4EmsoftC8WithFmincon() 
 
-% C3
+% C8
 
 clear; 
 echo on;
@@ -9,7 +9,7 @@ echo on;
 % which is produced by function `monomials`.
 warning('off')
 
-[vars, f, ~, g_theta, g_psy, g_zeta] = getLp4BenkEx6Problem();
+[vars, f, ~, g_theta, g_psy, g_zeta] = getLp4EmsoftTSC_C8Problem();
 
 eps = [0.1, 0.1];
 

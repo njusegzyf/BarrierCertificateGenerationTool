@@ -12,14 +12,14 @@ x1 = vars(1);
 x2 = vars(2);
 
 % Set the degree
-degree = 2;
+degree = 1;
 pLambdaDegree = 1;
 pReDegree = 1;
 
 maxIterations = 100;
 
-initRes = [1, 1];
-initLambdas = [1, 1];
+initRes = [0, 0];
+initLambdas = [0, 0];
 
 
 import lp4.runAndVerifyHLPWithIterations2

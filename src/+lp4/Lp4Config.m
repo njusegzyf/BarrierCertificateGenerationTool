@@ -11,10 +11,10 @@ classdef Lp4Config
         MIN_VERIFICATION_C_DEGREE = 0;
         
         % 根据 rou <= ROU_THRESHOLD 判断是否有解
-        ROU_THRESHOLD = 1e-6;
+        ROU_THRESHOLD = 5e-5;
         
         % 检验解时，每个系数向量的 2 范数的阈值
-        RES_NORM_THRESHOLD = 1e-8;
+        RES_NORM_THRESHOLD = 1e-5;
         
         % 在使用 SLPP 迭代求解时，默认的最大迭代次数
         DEFAULT_MAX_ITERATION_COUNT = 50
@@ -33,7 +33,7 @@ classdef Lp4Config
         VERIFICATION_LAMBDA_DEGREE_INC = 0;
         
         % 如果为 true，则将迭代过程中计算得到的所有小于零（但是大于 -rou ）的决策变量 C 强制置为 0
-        IS_DROP_NEGATIVE_C = false;
+        IS_DROP_NEGATIVE_C = true;
         
         DEFAULT_PARTITION_REPEAT_NUM = 1024;
         

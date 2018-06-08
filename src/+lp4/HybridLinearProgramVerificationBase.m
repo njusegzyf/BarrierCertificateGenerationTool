@@ -8,6 +8,7 @@ classdef HybridLinearProgramVerificationBase < lp4.Lp4AndHlpVerificationBase
         phys % 在不同状态下的 phy
         fs % 在不同状态下的 f
         
+        theta
         psys
         zetas
         guards
@@ -38,8 +39,9 @@ classdef HybridLinearProgramVerificationBase < lp4.Lp4AndHlpVerificationBase
             % different from LP, the phy is the phy of theta state
             thetaStatePhy = this.phys(this.thetaStateIndex);
             constraint1 = -thetaStatePhy;
-            import lp4.Lp4Config
-            de = computeDegree(constraint1, this.indvars) + Lp4Config.C_DEGREE_INC;
+
+            leftDegree = computeDegree(constraint1, this.indvars);
+            de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
             
             if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC) 
                 [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, theta, 'c_alpha_beta');
@@ -83,8 +85,9 @@ classdef HybridLinearProgramVerificationBase < lp4.Lp4AndHlpVerificationBase
                 
                 zetaStatePhy = this.phys(zeta.stateIndex);
                 constraint3 = zetaStatePhy + this.eps(2); % different from lp2
-                import lp4.Lp4Config
-                de = computeDegree(constraint3, this.indvars) + Lp4Config.C_DEGREE_INC;
+                
+                leftDegree = computeDegree(constraint3, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
                 
                 name = strcat('c_u_v', num2str(zetaIndex));
                 
@@ -105,6 +108,55 @@ classdef HybridLinearProgramVerificationBase < lp4.Lp4AndHlpVerificationBase
                 this.exprs(exprNum) = expr;
             end
        end
+       
+       function this = setReConstraint(this)
+            
+            for i = 1 : this.guardNum
+                guard = this.guards(i);
+                
+                % for an empty constrain
+                if isempty(guard.exprs)
+                    continue;
+                end
+                
+                exprNum = this.nextExprNumIndex();
+                
+                expr = Constraint();
+                expr.num = exprNum;
+                expr.name = 're';
+                expr.type = 'eq';
+                expr.A = [];
+                expr.b = [];
+                
+                constraintRe = - (this.pRePolynomials(i).expression);
+                
+                leftDegree = computeDegree(constraintRe, this.indvars);
+                de = lp4.Lp4Config.getVerificationCDegree(leftDegree);
+                
+                % if re is a constant, ignore it
+                %                 if de == 0
+                %                     continue;
+                %                 end
+                
+                name = strcat('c_re', num2str(i), '_');
+                
+                if (lp4.Lp4Config.IS_USE_NEW_CONSTRAINT_GENERATION_FUNC)
+                    [constraintDecvars, expression] = lp4util.generateConstraintExpression(de, guard.exprs, name);
+                else
+                    c_re = sym(name, [1, lp4.Lp4Config.getDecVarArraySize(length(guard.exprs) * 2, de)]);
+                    [constraintDecvars, expression] = constraintExpression(de, guard.exprs, c_re);
+                end
+
+                [this, this.decvarsIndexes.cReStarts(i), this.decvarsIndexes.cReEnds(i)] = this.addDecisionVars(constraintDecvars);
+                
+                constraintRe = constraintRe + expression;
+                
+                constraintRe = expand(constraintRe);
+                expr.polyexpr = constraintRe;
+                
+                this.exprs(exprNum) = expr;
+            end
+        end
         
        function this = setDecVarsConstraint(this)
             exprNum = this.nextExprNumIndex();
